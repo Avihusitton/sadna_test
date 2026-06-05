@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Settings, RefreshCw } from 'lucide-react';
+import { Settings, Save, RefreshCw } from 'lucide-react';
 
 export default function WorkshopCustomizer() {
   const { customization, setCustomization, setMaterialStatus } = useStore();
