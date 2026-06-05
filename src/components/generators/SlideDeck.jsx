@@ -222,7 +222,7 @@ export default function SlideDeck() {
         {/* Animated Background Mesh */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
           <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-green-200 mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-          <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-cyan-200 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-yellow-200 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
           <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-green-100 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
 
