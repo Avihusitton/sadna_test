@@ -5,7 +5,7 @@ import TopicInput from './views/TopicInput';
 import MarketAnalysis from './views/MarketAnalysis';
 import GeneratedMaterials from './views/GeneratedMaterials';
 import WorkshopCustomizer from './views/WorkshopCustomizer';
-import { Settings, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useStore } from './store';
 
 function App() {
@@ -27,7 +27,7 @@ function App() {
             <div className="flex justify-between h-16">
               <div className="flex">
                 <Link to="/" className="flex-shrink-0 flex items-center">
-                  <span className="text-2xl font-bold text-blue-800 tracking-tight">Workshop<span className="text-blue-500">Gen</span></span>
+                  <span className="text-2xl font-bold text-green-800 tracking-tight">Workshop<span className="text-green-500">Gen</span></span>
                 </Link>
                 <nav className="ml-6 flex space-x-8 space-x-reverse hidden sm:flex">
                   <Link to="/" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">

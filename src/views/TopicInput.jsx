@@ -44,7 +44,7 @@ export default function TopicInput() {
                 type="text"
                 name="topic"
                 id="topic"
-                className={`focus:ring-blue-500 focus:border-blue-500 block w-full text-lg sm:text-xl border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${error ? 'border-red-300 ring-red-500' : ''}`}
+                className={`focus:ring-green-500 focus:border-green-500 block w-full text-lg sm:text-xl border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${error ? 'border-red-300 ring-red-500' : ''}`}
                 placeholder="למשל: התמודדות עם חרדה בעבודה, תקשורת מקרבת לזוגות..."
                 value={inputTopic}
                 onChange={(e) => setInputTopic(e.target.value)}
@@ -57,7 +57,7 @@ export default function TopicInput() {
             <button
               type="submit"
               disabled={status === 'generating'}
-              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
             >
               <Sparkles className="ml-2 -mr-1 h-5 w-5" aria-hidden="true" />
               {status === 'generating' ? 'מייצר...' : 'ייצר סדנה'}
@@ -71,18 +71,18 @@ export default function TopicInput() {
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
                     בתהליך
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-semibold inline-block text-blue-600">
+                  <span className="text-xs font-semibold inline-block text-green-600">
                     {currentTask}
                   </span>
                 </div>
               </div>
-              <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
-                <div style={{ width: "45%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 animate-pulse"></div>
+              <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-100">
+                <div style={{ width: "45%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 animate-pulse"></div>
               </div>
             </div>
           </div>

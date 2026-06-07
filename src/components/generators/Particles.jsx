@@ -49,16 +49,19 @@ export default function Particles() {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw();
 
-        if (particles[i].x < 0 || particles[i].x > canvas.width ||
-            particles[i].y < 0 || particles[i].y > canvas.height) {
-           particles.splice(i, 1);
-           i--;
+      let keepCount = 0;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+
+        if (p.x >= 0 && p.x <= canvas.width &&
+            p.y >= 0 && p.y <= canvas.height) {
+           particles[keepCount++] = p;
         }
       }
+      particles.length = keepCount;
 
       if (particles.length < 100) {
          particles.push(new Particle());

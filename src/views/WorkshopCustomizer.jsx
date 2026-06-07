@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Settings, Save, RefreshCw } from 'lucide-react';
+import { Settings, RefreshCw } from 'lucide-react';
 
 export default function WorkshopCustomizer() {
   const { customization, setCustomization, setMaterialStatus } = useStore();
@@ -24,7 +24,7 @@ export default function WorkshopCustomizer() {
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center mb-8">
-        <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400 ml-3" />
+        <Settings className="h-8 w-8 text-green-600 dark:text-green-400 ml-3" />
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">התאמה אישית של הסדנה</h1>
       </div>
 
@@ -41,7 +41,7 @@ export default function WorkshopCustomizer() {
                 name="duration"
                 value={customization.duration}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 <option value="90-min">90 דקות (הרצאה אקטיבית)</option>
                 <option value="half-day">חצי יום (העמקה)</option>
@@ -59,7 +59,7 @@ export default function WorkshopCustomizer() {
                 name="audience"
                 value={customization.audience}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 <option value="individuals">אנשים פרטיים (קהל רחב)</option>
                 <option value="managers">מנהלים / ארגונים</option>
@@ -79,7 +79,7 @@ export default function WorkshopCustomizer() {
                 name="language"
                 value={customization.language}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 <option value="he">עברית</option>
                 <option value="en">English</option>
@@ -95,7 +95,7 @@ export default function WorkshopCustomizer() {
                 name="depth"
                 value={customization.depth}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 <option value="introductory">מבוא (היכרות ראשונית עם שיטת דרך)</option>
                 <option value="intermediate">ביניים (תרגול מעשי)</option>
@@ -114,7 +114,7 @@ export default function WorkshopCustomizer() {
             </button>
             <button
               type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none"
             >
               <RefreshCw className="ml-2 h-4 w-4" />
               שמור וצור מחדש

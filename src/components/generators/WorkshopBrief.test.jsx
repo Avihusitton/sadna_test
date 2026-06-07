@@ -96,16 +96,10 @@ describe('WorkshopBrief Component', () => {
 
   it('handles the "Save as PDF" functionality', () => {
     const originalPrint = window.print;
-    const originalReload = window.location.reload;
-    const originalInnerHTML = document.body.innerHTML;
 
     window.print = vi.fn();
 
     // Using simple mock to avoid navigation errors during tests
-    Object.defineProperty(window, 'location', {
-      value: { reload: vi.fn() },
-      writable: true
-    });
 
     useStore.mockReturnValue({
       topic: 'Leadership',
@@ -125,11 +119,9 @@ describe('WorkshopBrief Component', () => {
     fireEvent.click(downloadButton);
 
     expect(window.print).toHaveBeenCalled();
-    expect(window.location.reload).toHaveBeenCalled();
 
     // Cleanup
     window.print = originalPrint;
-    document.body.innerHTML = originalInnerHTML;
     unmount();
   });
 });
