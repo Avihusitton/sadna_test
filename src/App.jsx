@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import TopicInput from './views/TopicInput';
 import MarketAnalysis from './views/MarketAnalysis';
@@ -20,7 +20,7 @@ function App() {
   }, [theme]);
 
   return (
-    <Router basename="/sadna_test">
+    <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col font-sans transition-colors duration-200" dir="rtl">
         <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40 transition-colors duration-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import MarketAnalysis from './MarketAnalysis';
 import { useStore } from '../store';
 import { runMarketAnalysisPipeline } from '../services/pipeline';
@@ -36,9 +36,9 @@ describe('MarketAnalysis Error State', () => {
     });
 
     render(
-      <BrowserRouter>
+      <HashRouter>
         <MarketAnalysis />
-      </BrowserRouter>
+      </HashRouter>
     );
 
     await waitFor(() => {
@@ -57,9 +57,9 @@ describe('MarketAnalysis Error State', () => {
     });
 
     render(
-      <BrowserRouter>
+      <HashRouter>
         <MarketAnalysis />
-      </BrowserRouter>
+      </HashRouter>
     );
 
     await waitFor(() => {
@@ -85,9 +85,9 @@ describe('MarketAnalysis Error State', () => {
     runMarketAnalysisPipeline.mockRejectedValueOnce(new Error('Unexpected crash'));
 
     render(
-      <BrowserRouter>
+      <HashRouter>
         <MarketAnalysis />
-      </BrowserRouter>
+      </HashRouter>
     );
 
     await waitFor(() => {
