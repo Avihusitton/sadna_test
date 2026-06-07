@@ -53,14 +53,14 @@ export default function GeneratedMaterials() {
                   className={`
                     group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
                     ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      ? 'border-green-500 text-green-600 dark:text-green-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                     }
                   `}
                 >
                   <Icon className={`
                     ml-2 h-5 w-5
-                    ${activeTab === tab.id ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300'}
+                    ${activeTab === tab.id ? 'text-green-500 dark:text-green-400' : 'text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300'}
                   `} />
                   {tab.name}
                 </button>

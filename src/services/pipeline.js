@@ -1,5 +1,4 @@
 import { BRAND_VOICE, STRENGTHS, TARGET_AUDIENCE } from '../constants/brand';
-import { METHODOLOGY } from '../constants/methodology';
 
 // This is a simulated pipeline since we don't have a specific LLM API key.
 // In a real production environment, this would call an API like OpenAI to generate these based on prompts.
