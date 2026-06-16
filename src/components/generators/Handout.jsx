@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from '../../store';
-import { Printer } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
+import { printElement } from '../../utils/print';
 
 export default function Handout() {
-  const { topic, materials, setMaterialStatus } = useStore();
+  const { topic, marketAnalysis, materials, setMaterialStatus } = useStore();
   const printRef = useRef(null);
 
   useEffect(() => {
@@ -17,31 +18,13 @@ export default function Handout() {
   }, [materials.handout.status, setMaterialStatus]);
 
   const handlePrint = () => {
-    const originalChildren = Array.from(document.body.children);
-    originalChildren.forEach(child => {
-      if (child.style) child.style.display = 'none';
-    });
-
-    const printContainer = document.createElement('div');
-    printContainer.dir = 'rtl';
-    printContainer.style.cssText = "font-family: 'Heebo', sans-serif; max-width: 21cm; margin: 0 auto; padding: 2cm; color: black; background: white;";
-
-    const clonedContent = printRef.current.cloneNode(true);
-    printContainer.appendChild(clonedContent);
-    document.body.appendChild(printContainer);
-
-    window.print();
-
-    document.body.removeChild(printContainer);
-    originalChildren.forEach(child => {
-      if (child.style) child.style.display = '';
-    });
+    printElement(printRef.current, { maxWidth: '21cm', padding: '2cm' });
   };
 
   if (materials.handout.status === 'generating') {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
         <p className="text-gray-600">מייצר חוברת למשתתף...</p>
       </div>
     );
@@ -67,14 +50,14 @@ export default function Handout() {
           className="bg-white w-[21cm] min-h-[29.7cm] p-[2cm] shadow-lg text-gray-900 shrink-0"
         >
           {/* Header */}
-          <header className="border-b-2 border-green-800 pb-6 mb-8">
+          <header className="border-b-2 border-blue-800 pb-6 mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{topic}</h1>
             <p className="text-xl text-gray-600">מדריך אישי למשתתף | בהנחיית אביהו סיטון</p>
           </header>
 
           {/* Intro */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-green-900 mb-4 border-b border-gray-200 pb-2">מטרות הסדנה</h2>
+            <h2 className="text-2xl font-bold text-blue-900 mb-4 border-b border-gray-200 pb-2">מטרות הסדנה</h2>
             <ul className="list-disc list-inside space-y-2 text-gray-800 text-lg">
               <li>להבין את המנגנון הפנימי שפועל בנו סביב הנושא.</li>
               <li>לרכוש כלים מ"שיטת דרך" לעבודה רגשית עצמאית.</li>
@@ -84,7 +67,7 @@ export default function Handout() {
 
           {/* Methodology */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-green-900 mb-4 border-b border-gray-200 pb-2">מושגי מפתח משיטת דרך</h2>
+            <h2 className="text-2xl font-bold text-blue-900 mb-4 border-b border-gray-200 pb-2">מושגי מפתח משיטת דרך</h2>
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">נהר החיים</h3>
@@ -103,7 +86,7 @@ export default function Handout() {
 
           {/* Exercise Space */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-green-900 mb-4 border-b border-gray-200 pb-2">תרגיל אישי: זיהוי הסלע</h2>
+            <h2 className="text-2xl font-bold text-blue-900 mb-4 border-b border-gray-200 pb-2">תרגיל אישי: זיהוי הסלע</h2>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 min-h-[200px]">
               <p className="font-semibold text-gray-800 mb-4">מהו "הסלע" המרכזי שמפריע לזרימה שלך כרגע הקשור ל{topic}?</p>
               {/* Lines for writing */}

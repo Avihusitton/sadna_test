@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from '../../store';
-import { Download } from 'lucide-react';
+import { FileText, Download } from 'lucide-react';
+import { printElement } from '../../utils/print';
 
 export default function WorkshopBrief() {
   const { topic, marketAnalysis, materials, setMaterialStatus } = useStore();
@@ -17,31 +18,13 @@ export default function WorkshopBrief() {
   }, [materials.brief.status, setMaterialStatus]);
 
   const handleDownload = () => {
-    const originalChildren = Array.from(document.body.children);
-    originalChildren.forEach(child => {
-      if (child.style) child.style.display = 'none';
-    });
-
-    const printContainer = document.createElement('div');
-    printContainer.dir = 'rtl';
-    printContainer.style.cssText = "font-family: 'Heebo', sans-serif; max-width: 800px; margin: 0 auto; padding: 2cm; color: black; background: white;";
-
-    const clonedContent = briefRef.current.cloneNode(true);
-    printContainer.appendChild(clonedContent);
-    document.body.appendChild(printContainer);
-
-    window.print();
-
-    document.body.removeChild(printContainer);
-    originalChildren.forEach(child => {
-      if (child.style) child.style.display = '';
-    });
+    printElement(briefRef.current, { maxWidth: '800px', padding: '2cm' });
   };
 
   if (materials.brief.status === 'generating') {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
         <p className="text-gray-600">מנסח בריף שיווקי...</p>
       </div>
     );
@@ -55,7 +38,7 @@ export default function WorkshopBrief() {
         <h3 className="text-lg font-bold text-gray-900">בריף שיווקי (ללקוח/ארגון)</h3>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none"
+          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none"
         >
           <Download className="ml-2 h-4 w-4" />
           שמור כ-PDF לשליחה
@@ -68,8 +51,8 @@ export default function WorkshopBrief() {
           className="bg-white w-full max-w-3xl p-10 shadow-sm text-gray-900 rounded-lg"
         >
           {/* Header */}
-          <div className="text-center mb-10 pb-6 border-b-2 border-green-100">
-            <h1 className="text-3xl font-extrabold text-green-900 mb-3">הצעת סדנה: {topic}</h1>
+          <div className="text-center mb-10 pb-6 border-b-2 border-blue-100">
+            <h1 className="text-3xl font-extrabold text-blue-900 mb-3">הצעת סדנה: {topic}</h1>
             <p className="text-xl text-gray-600">{winnerAngle?.title || "סדנה מעשית"}</p>
           </div>
 
@@ -77,7 +60,7 @@ export default function WorkshopBrief() {
             {/* The Problem */}
             <section>
               <h2 className="flex items-center text-xl font-bold text-gray-800 mb-3">
-                <span className="w-8 h-8 rounded-lg bg-green-100 text-green-800 flex items-center justify-center ml-3">1</span>
+                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center ml-3">1</span>
                 האתגר
               </h2>
               <p className="text-gray-700 leading-relaxed pr-11">
@@ -88,7 +71,7 @@ export default function WorkshopBrief() {
             {/* The Solution */}
             <section>
               <h2 className="flex items-center text-xl font-bold text-gray-800 mb-3">
-                <span className="w-8 h-8 rounded-lg bg-green-100 text-green-800 flex items-center justify-center ml-3">2</span>
+                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center ml-3">2</span>
                 הגישה שלנו
               </h2>
               <p className="text-gray-700 leading-relaxed pr-11 font-medium">
@@ -102,7 +85,7 @@ export default function WorkshopBrief() {
             {/* Outcomes */}
             <section>
               <h2 className="flex items-center text-xl font-bold text-gray-800 mb-3">
-                <span className="w-8 h-8 rounded-lg bg-green-100 text-green-800 flex items-center justify-center ml-3">3</span>
+                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center ml-3">3</span>
                 תוצאות מצופות
               </h2>
               <ul className="list-disc list-outside space-y-2 text-gray-700 pr-16">
