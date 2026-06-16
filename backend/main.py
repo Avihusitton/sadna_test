@@ -104,7 +104,19 @@ def extract_json(text: str) -> dict:
         except json.JSONDecodeError:
             pass
             
-    raise ValueError("Could not parse JSON from model output: " + text)
+def safe_get_list(data: Any, key: str) -> list:
+    if isinstance(data, dict):
+        val = data.get(key, [])
+        return val if isinstance(val, list) else []
+    elif isinstance(data, list):
+        # If it is a list of dicts, search for the key
+        for item in data:
+            if isinstance(item, dict) and key in item:
+                val = item.get(key)
+                if isinstance(val, list):
+                    return val
+        return data
+    return []
 
 @app.post("/api/generate")
 async def generate_workshop(request: WorkshopRequest):
@@ -185,8 +197,8 @@ async def generate_workshop(request: WorkshopRequest):
         stage3_json = extract_json(stage3_output)
         
         # Synthesize front-end marketResearch payload
-        pains_str = ", ".join(stage1_json.get("pain_points", []))
-        objs_str = ", ".join(stage1_json.get("objections", []))
+        pains_str = ", ".join(safe_get_list(stage1_json, "pain_points"))
+        objs_str = ", ".join(safe_get_list(stage1_json, "objections"))
         
         landscape = f"ניתוח שוק עבור סדנת \"{request.topic}\" לקהל היעד \"{request.audience}\" מראה כי נקודות הכאב המרכזיות הן: {pains_str}. המשתתפים מביעים חששות והתנגדויות בעיקר סביב: {objs_str}."
         gaps = "חסר חיבור אמיתי בין ידע תיאורטי לעבודה רגשית עמוקה שיורדת לחיי היומיום. רוב התכנים נשארים ברמת התיאוריה."
@@ -208,7 +220,7 @@ async def generate_workshop(request: WorkshopRequest):
                 "isWinner": True,
                 "economicPotential": "High",
                 "defensibility": "נשען על שפה ייחודית (שיטת דרך) ועל הניסיון הספציפי של אביהו בחיבור בין פרקטיקה, רוח ויהדות - קשה מאוד להעתקה.",
-                "positioningStatement": f"הסדנה היחידה לנושא \"{request.topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח. hooks מובילים: {', '.join(stage1_json.get('hooks', []))}"
+                "positioningStatement": f"הסדנה היחידה לנושא \"{request.topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח. hooks מובילים: {', '.join(safe_get_list(stage1_json, 'hooks'))}"
             },
             {
                 "id": 2,
@@ -256,7 +268,7 @@ async def generate_workshop(request: WorkshopRequest):
             "differentiationAngles": differentiation_angles,
             "economicValidation": economic_validation,
             "syllabus": stage2_json,
-            "slides": stage3_json.get("slides", []),
+            "slides": safe_get_list(stage3_json, "slides"),
             "stage1_raw": stage1_json
         }
         
