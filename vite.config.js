@@ -6,6 +6,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: "/sadna_test/",
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000'
+    }
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.js'],
