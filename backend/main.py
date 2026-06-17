@@ -69,16 +69,21 @@ def load_all_constants():
     
     brand_file = os.path.join(root_dir, "src", "constants", "brand.js")
     methodology_file = os.path.join(root_dir, "src", "constants", "methodology.js")
+    content_file = os.path.join(root_dir, "src", "constants", "content.js")
     
     if not os.path.exists(brand_file):
         brand_file = os.path.join(script_dir, "brand.js")
     if not os.path.exists(methodology_file):
         methodology_file = os.path.join(script_dir, "methodology.js")
+    if not os.path.exists(content_file):
+        content_file = os.path.join(script_dir, "content.js")
         
     with open(brand_file, "r", encoding="utf-8") as f:
         brand_content = f.read()
     with open(methodology_file, "r", encoding="utf-8") as f:
         meth_content = f.read()
+    with open(content_file, "r", encoding="utf-8") as f:
+        content_content = f.read()
         
     def parse_js_array(content, var_name):
         pattern = rf'export\s+const\s+{var_name}\s*=\s*\[(.*?)\];'
@@ -112,7 +117,35 @@ def load_all_constants():
     target_audience = parse_js_array(brand_content, "TARGET_AUDIENCE")
     methodology = parse_js_object(meth_content, "METHODOLOGY")
     
-    return brand_voice, strengths, target_audience, methodology
+    # Custom parser for REAL_CONTENT (contains nested objects and arrays)
+    miloim_match = re.search(r'miloimInsights:\s*\[(.*?)\]', content_content, re.DOTALL)
+    miloim_insights = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', miloim_match.group(1)) if miloim_match else []
+
+    av_nolad = {}
+    av_nolad_match = re.search(r'avNoladProgram:\s*\{(.*?)\}', content_content, re.DOTALL)
+    if av_nolad_match:
+        av_nolad_content = av_nolad_match.group(1)
+        for m in re.finditer(r'(\w+):\s*"([^"\\]*(?:\\.[^"\\]*)*)"', av_nolad_content):
+            av_nolad[m.group(1)] = m.group(2)
+
+    key_phrases_match = re.search(r'keyPhrases:\s*\[(.*?)\]', content_content, re.DOTALL)
+    key_phrases = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', key_phrases_match.group(1)) if key_phrases_match else []
+
+    derech_method = {}
+    derech_match = re.search(r'derechMethod:\s*\{(.*?)\}', content_content, re.DOTALL)
+    if derech_match:
+        derech_content = derech_match.group(1)
+        for m in re.finditer(r'(\w+):\s*"([^"\\]*(?:\\.[^"\\]*)*)"', derech_content):
+            derech_method[m.group(1)] = m.group(2)
+
+    real_content = {
+        "miloimInsights": miloim_insights,
+        "avNoladProgram": av_nolad,
+        "keyPhrases": key_phrases,
+        "derechMethod": derech_method
+    }
+    
+    return brand_voice, strengths, target_audience, methodology, real_content
 
 def extract_json(text: str) -> dict:
     try:
@@ -167,14 +200,23 @@ def search_market_data(topic: str, audience: str) -> str:
 
 def execute_stage1(topic: str, audience: str) -> Dict[str, Any]:
     search_results = search_market_data(topic, audience)
+    brand_voice, strengths, target_audience, methodology, real_content = load_all_constants()
     
-    sys1 = """אתה אסטרטג שיווקי ומומחה לפיתוח עסקי בשוק ההדרכות וסדנאות בישראל.
+    av_nolad_description = real_content.get("avNoladProgram", {}).get("description", "")
+    miloim_insights = "\n".join(f"- {i}" for i in real_content.get("miloimInsights", []))
+    
+    sys1 = f"""אתה אסטרטג שיווקי ומומחה לפיתוח עסקי בשוק ההדרכות וסדנאות בישראל.
 אתה עובד עם אביהו סיטון — פסיכותרפיסט עם רקע ייחודי:
 - מהנדס בוגר הטכניון בהצטיינות
-- ניהל פרויקטי ביצוע ברכבת ישראל — תשתיות, מאות מיליוני ש"ח, ניהול אנשים בשטח תחת לחץ
+- ניהל פרויקטי ביצוע ברכבת ישראל — תשתיות, לוחות זמנים, ניהול שטח תחת לחץ
 - מפקד לוחם פעיל במילואים — מכיר את הפסיכולוגיה של לחץ, אחריות וחזרה הביתה
 - פסיכותרפיסט — עצמאות רגשית, שיטת "דרך", עובד עם מילואימניקים, זוגות, מנהלים
 - הייחוד האנושי: "בן אדם רגיל" — ישיר, לא קליני, מגיע מהשטח לא מהאקדמיה
+
+תוכנית 'אב נולד' ב-ויצו: {av_nolad_description}
+
+תובנות מילואים לניתוח נקודות כאב:
+{miloim_insights}
 
 כשמקבלים בקשה לסדנה: אל תצטט את הנושא. נתח מה הכאב הרגשי האמיתי שעומד מאחוריו.
 שאל את עצמך: היכן הכאב האנושי של הקהל הזה פוגש את האחריות המקצועית שלו?
@@ -207,20 +249,20 @@ def execute_stage1(topic: str, audience: str) -> Dict[str, Any]:
         temperature=0.3
     )
     return extract_json(res1.choices[0].message.content)
-
+ 
 def execute_stage15(topic: str, audience: str, stage1_json: Dict[str, Any]) -> Dict[str, Any]:
     interpreted_topic = stage1_json.get("interpreted_topic", topic)
     
     sys15 = """אתה יועץ מיצוב אסטרטגי בכיר. תפקידך: לזהות בידול שלא ניתן להעתיק.
-
+ 
 פרופיל אביהו סיטון — קרא בעיון:
 - מהנדס טכניון + ניהל תשתיות רכבת (לא יועץ ארגוני — מנהל שטח עם תקציב אמיתי ואנשים אמיתיים)
 - מפקד מילואים לוחם — יודע מה קורה לאדם כשחוזר מ-60 יום מילואים למשפחה ולעבודה
 - פסיכותרפיסט — לא מדבר בשפה קלינית, מדבר בשפת האדם שמכיר את השטח
 - שיטת "דרך": נקודת הבחירה, נהר החיים, עצמאות רגשית
-
+ 
 בידול אמיתי = משפט שאביהו יכול לומר על הבמה ושאף מרצה אחר בישראל לא יכול לומר באמינות.
-לא "ניסיון עשיר" — ספציפי: "ניהלתי 200 עובדים בפרויקט תשתיות תחת לחץ, ואז הבנתי שהלחץ האמיתי לא היה בפרויקט"
+לא "ניסיון עשיר" — ספציפי: "ניהלתי פרויקטי ביצוע ברכבת ישראל — תשתיות, לוחות זמנים, ניהול שטח תחת לחץ. הבנתי שהלחץ האמיתי לא היה בפרויקט"
 החזר JSON בלבד, ללא טקסט נוסף."""
 
     user15 = f'''נושא: "{interpreted_topic}" | קהל: "{audience}"
@@ -285,7 +327,7 @@ def execute_stage15(topic: str, audience: str, stage1_json: Dict[str, Any]) -> D
     return {"differentiation_angles": differentiation_angles}
 
 def execute_stage2(topic: str, audience: str, stage1_json: Dict[str, Any], interpreted_topic: str) -> Dict[str, Any]:
-    brand_voice, strengths, target_audience, methodology = load_all_constants()
+    brand_voice, strengths, target_audience, methodology, real_content = load_all_constants()
     methodology_context = f"שיטת {methodology.get('name')}:\n- מטאפורה: {methodology.get('coreMetaphor')}\n- עקרונות:\n" + "\n".join(f"- {p}" for p in methodology.get('principles', [])) + "\n- כלים:\n" + "\n".join(f"- {c}" for c in methodology.get('toolsAndConcepts', []))
     
     sys2 = f"""אתה פדגוג מומחה בבניית סדנאות פרונטליות בישראל.
@@ -313,14 +355,16 @@ def execute_stage2(topic: str, audience: str, stage1_json: Dict[str, Any], inter
     return extract_json(res2.choices[0].message.content)
 
 def execute_stage3(topic: str, audience: str, stage1_json: Dict[str, Any], stage2_json: Dict[str, Any], differentiation_angles: list, interpreted_topic: str) -> Dict[str, Any]:
-    brand_voice, strengths, target_audience, methodology = load_all_constants()
+    brand_voice, strengths, target_audience, methodology, real_content = load_all_constants()
     brand_context = f"ערכי המותג:\n- טון: {brand_voice.get('tone')}\n- סגנון: {brand_voice.get('uniqueStyle')}\n- ערכים: {', '.join(brand_voice.get('values', []))}\nחוזקות:\n" + "\n".join(f"- {s}" for s in strengths) + "\nקהל יעד:\n" + "\n".join(f"- {t}" for t in target_audience)
+    
+    key_phrases = "\n".join(f"- {p}" for p in real_content.get("keyPhrases", []))
     
     sys3 = f"""אתה מומחה לבניית סדנאות פרונטליות — לא קופירייטר. אתה יוצר חומרי הנחיה אמיתיים.
 אתה בונה עבור אביהו סיטון.
 
 פרופיל אביהו (חייב להופיע בשקף הפתיחה):
-- מהנדס טכניון + ניהל פרויקטי ביצוע ברכבת ישראל (200+ עובדים, מאות מיליוני ש"ח)
+- מהנדס טכניון + ניהל פרויקטי ביצוע ברכבת ישראל — תשתיות, לוחות זמנים, ניהול שטח תחת לחץ
 - מפקד לוחם במילואים — מכיר מה זה לחזור הביתה אחרי 60 יום
 - פסיכותרפיסט שמדבר בגובה העיניים, לא בז'רגון קליני
 - שיטת "דרך": נקודת הבחירה, נהר החיים
@@ -346,6 +390,9 @@ def execute_stage3(topic: str, audience: str, stage1_json: Dict[str, Any], stage
 - לא 'מה הכאב שלך' — 'חשוב על עובד שחזר ממילואים: מה עשית? מה רצית לעשות ולא ידעת?'
 - תרגיל זוגי > תרגיל אישי — עדיף שמישהו ישמע.
 - כל תרגיל: הוראה אחת ברורה + שאלה אחת ממוקדת + 5 דקות מוקצות.
+
+ביטויים שאביהו משתמש בהם — השתמש בהם בשקפים:
+{key_phrases}
 
 החזר JSON בלבד, ללא טקסט נוסף.
 

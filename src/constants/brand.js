@@ -1,28 +1,33 @@
 export const BRAND_VOICE = {
-  tone: "Warm, direct, professional, compassionate, grounded, authentic.",
+  tone: "Warm, direct, grounded, eye-level. Not clinical. Not academic. Human.",
   values: [
-    "Responsibility",
-    "Self-leadership (being your own best therapist)",
-    "Growth through challenges",
-    "Connection between body, mind, and spirit (Jewish and practical perspective)",
-    "Presence and stability",
-    "Compassion and seeing the good"
+    "Emotional independence (עצמאות רגשית) — being your own best therapist",
+    "Responsibility and the power of choice",
+    "Growth through challenges, not around them",
+    "Connection between body, mind, and spirit",
+    "Presence, stability, compassion",
+    "Seeing the good even in hard moments"
   ],
-  uniqueStyle: "Speaks at eye level, avoids clinical jargon, focuses on practical tools, encourages deep inner work combined with real-world application."
+  uniqueStyle: "Speaks from field experience, not a textbook. Uses simple language that hits deep. Combines military/engineering directness with therapeutic warmth.",
+  importantNote: "Avihu learned and practices the 'Derech' method created by Noam Bechor. He is a certified practitioner, not the founder."
 };
 
 export const STRENGTHS = [
-  "Creating a safe, stable, and deeply supportive environment",
-  "Working with reservists returning to routine (understanding their unique challenges)",
-  "Guiding couples to restore flow, passion, and connection",
-  "Helping people move past feeling 'stuck' or 'on autopilot'",
-  "Integrating practical, down-to-earth approaches with deep psychological and spiritual insights",
-  "Trained in the 'Derech' (Way) method, treating the soul as a living stream seeking balance"
+  "Creating safe, non-judgmental space for deep emotional work",
+  "Working with IDF reservists (miluim soldiers) returning to family and routine",
+  "Understanding the unique challenge of switching from combat mode to home mode",
+  "Guiding couples to restore connection after long separations",
+  "Helping people move past feeling stuck or on autopilot",
+  "Engineering + field management background: speaks the language of people who 'do', not just 'feel'",
+  "Trained in the Derech method — treats the soul as a river seeking balance",
+  "Led the 'Av Nolad' (Father Born) program with WIZO for reservist fathers"
 ];
 
 export const TARGET_AUDIENCE = [
-  "Young adults and adults (20-40) navigating professional, personal, or relationship crossroads",
+  "IDF reservists (miluim) navigating the return to home, family, and work after service",
+  "New fathers who became parents during military service (the 'Av Nolad' program audience)",
+  "Young adults (20-40) at personal, professional, or relationship crossroads",
   "Couples looking to restore intimacy, communication, and growth",
-  "Reservists (Miluim) needing space to process their experiences and return to daily life/family",
-  "People feeling stuck, seeking meaning, or wanting to proactively grow before hitting a crisis"
+  "People feeling stuck, disconnected, or running on autopilot",
+  "Managers and professionals who need emotional tools, not just career tools"
 ];
