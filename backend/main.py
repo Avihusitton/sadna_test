@@ -140,11 +140,38 @@ def load_all_constants():
         for m in re.finditer(r'(\w+):\s*"([^"\\]*(?:\\.[^"\\]*)*)"', derech_content):
             derech_method[m.group(1)] = m.group(2)
 
+    workshop_examples = []
+    examples_match = re.search(r'workshopExamples:\s*\[(.*?)\]\s*(,\s*testimonials|,\s*\})', content_content, re.DOTALL)
+    if examples_match:
+        examples_block = examples_match.group(1)
+        blocks = re.findall(r'\{\s*(.*?)\s*\}', examples_block, re.DOTALL)
+        for b in blocks:
+            name_m = re.search(r'name:\s*"([^"\\]*(?:\\.[^"\\]*)*)"', b)
+            desc_m = re.search(r'description:\s*"([^"\\]*(?:\\.[^"\\]*)*)"', b)
+            if name_m and desc_m:
+                workshop_examples.append({
+                    "name": name_m.group(1),
+                    "description": desc_m.group(1)
+                })
+
+    testimonials_match = re.search(r'testimonials:\s*\[(.*?)\]', content_content, re.DOTALL)
+    testimonials = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', testimonials_match.group(1)) if testimonials_match else []
+
+    about_avihu = {}
+    about_match = re.search(r'aboutAvihu:\s*\{(.*?)\}', content_content, re.DOTALL)
+    if about_match:
+        about_content = about_match.group(1)
+        for m in re.finditer(r'(\w+):\s*"([^"\\]*(?:\\.[^"\\]*)*)"', about_content):
+            about_avihu[m.group(1)] = m.group(2)
+
     real_content = {
         "miloimInsights": miloim_insights,
         "avNoladProgram": av_nolad,
         "keyPhrases": key_phrases,
-        "derechMethod": derech_method
+        "derechMethod": derech_method,
+        "workshopExamples": workshop_examples,
+        "testimonials": testimonials,
+        "aboutAvihu": about_avihu
     }
     
     return brand_voice, strengths, target_audience, methodology, real_content
@@ -332,10 +359,15 @@ def execute_stage2(topic: str, audience: str, stage1_json: Dict[str, Any], inter
     brand_voice, strengths, target_audience, methodology, real_content = load_all_constants()
     methodology_context = f"שיטת {methodology.get('name')}:\n- מטאפורה: {methodology.get('coreMetaphor')}\n- עקרונות:\n" + "\n".join(f"- {p}" for p in methodology.get('principles', [])) + "\n- כלים:\n" + "\n".join(f"- {c}" for c in methodology.get('toolsAndConcepts', []))
     
+    workshop_examples = "\n".join(f"- {w.get('name')}: {w.get('description')}" for w in real_content.get("workshopExamples", []))
+    
     sys2 = f"""אתה פדגוג מומחה בבניית סדנאות פרונטליות בישראל.
 אתה בונה תכנית עבור אביהו סיטון המשתמש בשיטת "דרך": נקודת הבחירה, שלושת הכוחות, לעבור דרך כאב.
 הטון: חם, ישיר, לא אקדמי. ללא ז'רגון קליני.
 החזר JSON בלבד, ללא טקסט נוסף.
+
+דוגמאות לסדנאות שאביהו העביר בפועל:
+{workshop_examples}
 
 פרטי רקע על שיטת העבודה:
 {methodology_context}"""
