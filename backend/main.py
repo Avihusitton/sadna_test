@@ -25,10 +25,10 @@ client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY or "DUMMY_KEY"
 )
-MODEL_RESEARCH   = "meta/llama-3.1-405b-instruct"        # Stage 1
-MODEL_STRATEGY   = "nvidia/llama-3.3-nemotron-super-49b-v1.5"  # Stage 1.5
-MODEL_SYLLABUS   = "meta/llama-3.1-405b-instruct"        # Stage 2
-MODEL_CONTENT    = "moonshotai/kimi-k2"                  # Stage 3
+MODEL_RESEARCH   = "meta/llama-3.3-70b-instruct"        # Stage 1
+MODEL_STRATEGY   = "meta/llama-3.3-70b-instruct"  # Stage 1.5
+MODEL_SYLLABUS   = "meta/llama-3.3-70b-instruct"        # Stage 2
+MODEL_CONTENT    = "moonshotai/kimi-k2.6"                  # Stage 3
 
 class WorkshopRequest(BaseModel):
     topic: str

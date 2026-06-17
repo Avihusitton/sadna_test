@@ -91,7 +91,7 @@ describe('MarketAnalysis Error State', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('שגיאה בלתי צפויה.')).toBeInTheDocument();
+      expect(screen.getByText('שגיאה בלתי צפויה: Unexpected crash')).toBeInTheDocument();
     });
 
     expect(useStore.getState().status).toBe('error');

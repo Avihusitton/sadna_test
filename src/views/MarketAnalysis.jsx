@@ -26,7 +26,7 @@ export default function MarketAnalysis() {
           if (result.error === "NO_DIFFERENTIATION") {
              setLocalError("לא נמצאה זווית בידול חזקה מספיק. האם תרצה להמשיך עם הזווית הטובה ביותר או לשנות נושא?");
           } else {
-             setLocalError(`שגיאה בתהליך: ${result.details}`);
+             setLocalError(`שגיאה בתהליך: ${result.details ?? result.error ?? "לא ידועה"}`);
           }
           setStatus('error');
         } else {
@@ -34,7 +34,8 @@ export default function MarketAnalysis() {
           setStatus('done');
         }
       } catch (e) {
-        setLocalError("שגיאה בלתי צפויה.");
+        console.error("Pipeline error:", e);
+        setLocalError(`שגיאה בלתי צפויה: ${e?.message ?? e}`);
         setStatus('error');
       }
     };
