@@ -12,6 +12,27 @@ export default function MarketAnalysis() {
   const [editingAngle, setEditingAngle] = useState(false);
   const [editedAngleText, setEditedAngleText] = useState("");
 
+  const loadingMessages = [
+    'מנתח נתוני שוק...',
+    'מזהה הזדמנויות עסקיות...',
+    'ממפה פעילות מתחרים...',
+    'מכין תובנות אסטרטגיות...'
+  ];
+  
+  const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
+
+  useEffect(() => {
+    if (status !== 'generating') return;
+    
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % loadingMessages.length;
+      setLoadingMessage(loadingMessages[index]);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [status]);
+
   useEffect(() => {
     if (!topic) {
       navigate('/');
@@ -57,18 +78,70 @@ export default function MarketAnalysis() {
 
   if (status === 'generating') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative overflow-hidden px-4">
+      <div className="relative min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 overflow-hidden flex flex-col justify-center items-center">
         {/* Background Layer */}
         <div className="fixed inset-0 -z-10 overflow-hidden bg-[#f9f9ff] dark:bg-gray-950">
           <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-[#a6f4b5]/20 dark:bg-[#a6f4b5]/5 rounded-full blur-3xl animate-blob"></div>
           <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#b4c5ff]/20 dark:bg-[#b4c5ff]/5 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
         </div>
 
-        <div className="w-full max-w-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-8 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-[#01696f]/5 flex flex-col items-center animate-reveal">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#01696f] dark:border-[#8bd79b] mb-6"></div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">מבצע מחקר שוק ואנליזה...</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 text-center">{useStore.getState().currentTask}</p>
-          <ProgressChecklist />
+        {/* Central Loading Box */}
+        <div className="w-full max-w-4xl bg-white/85 dark:bg-gray-900/85 backdrop-blur-md p-8 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-[#01696f]/5 animate-reveal text-right flex flex-col space-y-6">
+          
+          {/* Header Loading State */}
+          <div className="flex flex-col items-end space-y-2">
+            <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+            <div className="h-4 w-96 bg-gray-100 dark:bg-gray-850 rounded-md animate-pulse"></div>
+          </div>
+
+          {/* Dynamic Message Banner */}
+          <div className="bg-[#01696f]/5 dark:bg-[#01696f]/10 p-5 rounded-2xl border border-[#01696f]/10 dark:border-[#8bd79b]/10 flex flex-col items-center justify-center space-y-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#01696f] dark:border-[#8bd79b]"></div>
+            <p className="text-lg font-bold text-[#01696f] dark:text-[#8bd79b] animate-pulse">
+              {loadingMessage}
+            </p>
+          </div>
+
+          {/* Progress Checklist */}
+          <div className="py-2 border-t border-b border-gray-100 dark:border-gray-800">
+            <ProgressChecklist />
+          </div>
+
+          {/* Skeleton Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Fake Bento Card 1 */}
+              <div className="p-5 rounded-xl border border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-850/50 space-y-3">
+                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                <div className="h-3 w-5/6 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+              </div>
+              {/* Fake Bento Card 2 */}
+              <div className="p-5 rounded-xl border border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-850/50 space-y-3">
+                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                <div className="h-3 w-4/5 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+              </div>
+              {/* Fake Large Card */}
+              <div className="p-5 rounded-xl border border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-850/50 space-y-3 md:col-span-2">
+                <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                <div className="h-3 w-11/12 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Fake Sidebar */}
+            <div className="p-5 rounded-xl border border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-850/50 space-y-4">
+              <div className="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                <div className="h-3 w-5/6 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+                <div className="h-3 w-4/5 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+              </div>
+              <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse mt-4"></div>
+            </div>
+          </div>
+
         </div>
       </div>
     );
