@@ -21,7 +21,27 @@ export const runFullPipeline = async (topic, audience, customization) => {
       throw new Error(errData.detail || `HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    const store = useStore.getState();
+    if (data.stage1_raw || data.marketResearch) {
+      store.setStage1Done(true);
+      store.setCurrentTask('מיצוב ובידול');
+    }
+    if (data.differentiationAngles) {
+      store.setStage15Done(true);
+      store.setCurrentTask('בניית סילבוס');
+    }
+    if (data.syllabus) {
+      store.setStage2Done(true);
+      store.setCurrentTask('יצירת שקפים ותוכן');
+    }
+    if (data.slides) {
+      store.setStage3Done(true);
+      store.setCurrentTask('הושלם');
+    }
+    
+    return data;
   } catch (error) {
     console.error("Pipeline Error:", error);
     return { error: 'PIPELINE_FAILED', details: error.message };

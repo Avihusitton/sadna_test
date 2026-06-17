@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { runMarketAnalysisPipeline } from '../services/pipeline';
 import { Target, TrendingUp, AlertTriangle, CheckCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import ProgressChecklist from '../components/ProgressChecklist';
 
 export default function MarketAnalysis() {
   const { topic, status, setStatus, setCurrentTask, marketAnalysis, setMarketAnalysis } = useStore();
@@ -17,11 +18,44 @@ export default function MarketAnalysis() {
       return;
     }
 
+    const timers = [];
+
     const runAnalysis = async () => {
       setStatus('generating');
       setLocalError(null);
+      
+      const store = useStore.getState();
+      store.setStage1Done(false);
+      store.setStage15Done(false);
+      store.setStage2Done(false);
+      store.setStage3Done(false);
+      setCurrentTask('מחקר שוק ואנליזה');
+
+      timers.push(setTimeout(() => {
+        if (useStore.getState().status === 'generating') {
+          store.setStage1Done(true);
+          setCurrentTask('מיצוב ובידול');
+        }
+      }, 4000));
+
+      timers.push(setTimeout(() => {
+        if (useStore.getState().status === 'generating') {
+          store.setStage15Done(true);
+          setCurrentTask('בניית סילבוס');
+        }
+      }, 8000));
+
+      timers.push(setTimeout(() => {
+        if (useStore.getState().status === 'generating') {
+          store.setStage2Done(true);
+          setCurrentTask('יצירת שקפים ותוכן');
+        }
+      }, 12000));
+
       try {
         const result = await runMarketAnalysisPipeline(topic, setCurrentTask);
+        timers.forEach(clearTimeout);
+        
         if (result.error) {
           if (result.error === "NO_DIFFERENTIATION") {
              setLocalError("לא נמצאה זווית בידול חזקה מספיק. האם תרצה להמשיך עם הזווית הטובה ביותר או לשנות נושא?");
@@ -30,10 +64,16 @@ export default function MarketAnalysis() {
           }
           setStatus('error');
         } else {
+          store.setStage1Done(true);
+          store.setStage15Done(true);
+          store.setStage2Done(true);
+          store.setStage3Done(true);
+          
           setMarketAnalysis(result);
           setStatus('done');
         }
       } catch (e) {
+        timers.forEach(clearTimeout);
         console.error("Pipeline error:", e);
         setLocalError(`שגיאה בלתי צפויה: ${e?.message ?? e}`);
         setStatus('error');
@@ -43,6 +83,10 @@ export default function MarketAnalysis() {
     if (!marketAnalysis || marketAnalysis.topic !== topic) {
       runAnalysis();
     }
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
   }, [topic, navigate]);
 
   if (status === 'generating') {
@@ -50,7 +94,8 @@ export default function MarketAnalysis() {
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-6"></div>
         <h2 className="text-2xl font-semibold text-gray-800">מבצע מחקר שוק ואנליזה...</h2>
-        <p className="text-gray-500 mt-2">{useStore.getState().currentTask}</p>
+        <p className="text-gray-500 mt-2 mb-4">{useStore.getState().currentTask}</p>
+        <ProgressChecklist />
       </div>
     );
   }
@@ -61,7 +106,7 @@ export default function MarketAnalysis() {
         <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-4">{localError}</h2>
         <div className="flex justify-center space-x-4 space-x-reverse">
-            <button onClick={() => navigate('/')} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300">
+            <button onClick={() => { useStore.getState().resetWorkshop(); navigate('/'); }} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300">
               שינוי נושא
             </button>
             <button onClick={() => { setLocalError(null); setStatus('done'); }} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">

@@ -95,4 +95,41 @@ describe('useStore', () => {
       depth: 'advanced'
     });
   });
+
+  describe('useStore — progress flags', () => {
+    it('should set and reset stage flags', () => {
+      useStore.getState().setStage1Done(true);
+      expect(useStore.getState().stage1Done).toBe(true);
+      useStore.setState(initialState, true);
+      expect(useStore.getState().stage1Done).toBe(false);
+    });
+  });
+
+  it('should reset workshop state back to initial values using resetWorkshop', () => {
+    useStore.getState().setMarketAnalysis({ topic: 'test' });
+    useStore.getState().setStatus('generating');
+    useStore.getState().setCurrentTask('working...');
+    useStore.getState().setStage1Done(true);
+    useStore.getState().setStage15Done(true);
+    useStore.getState().setStage2Done(true);
+    useStore.getState().setStage3Done(true);
+
+    expect(useStore.getState().marketAnalysis).not.toBeNull();
+    expect(useStore.getState().status).toBe('generating');
+    expect(useStore.getState().currentTask).toBe('working...');
+    expect(useStore.getState().stage1Done).toBe(true);
+    expect(useStore.getState().stage15Done).toBe(true);
+    expect(useStore.getState().stage2Done).toBe(true);
+    expect(useStore.getState().stage3Done).toBe(true);
+
+    useStore.getState().resetWorkshop();
+
+    expect(useStore.getState().marketAnalysis).toBeNull();
+    expect(useStore.getState().status).toBe('idle');
+    expect(useStore.getState().currentTask).toBe('');
+    expect(useStore.getState().stage1Done).toBe(false);
+    expect(useStore.getState().stage15Done).toBe(false);
+    expect(useStore.getState().stage2Done).toBe(false);
+    expect(useStore.getState().stage3Done).toBe(false);
+  });
 });
