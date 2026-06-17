@@ -25,7 +25,10 @@ client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY or "DUMMY_KEY"
 )
-MODEL_NAME = "meta/llama-3.1-70b-instruct"
+MODEL_RESEARCH   = "meta/llama-3.1-405b-instruct"        # Stage 1
+MODEL_STRATEGY   = "nvidia/llama-3.3-nemotron-super-49b-v1.5"  # Stage 1.5
+MODEL_SYLLABUS   = "meta/llama-3.1-405b-instruct"        # Stage 2
+MODEL_CONTENT    = "moonshotai/kimi-k2"                  # Stage 3
 
 class WorkshopRequest(BaseModel):
     topic: str
@@ -159,7 +162,7 @@ async def generate_workshop(request: WorkshopRequest):
 - market_gap: משפט אחד — הפער שאביהו יכול למלא שמהנדס-מפקד-מטפל יכול למלא ואף מרצה אחר לא'''
         
         res1 = client.chat.completions.create(
-            model=MODEL_NAME,
+            model=MODEL_RESEARCH,
             messages=[
                 {"role": "system", "content": sys1},
                 {"role": "user", "content": user1}
@@ -197,7 +200,7 @@ async def generate_workshop(request: WorkshopRequest):
 החזר JSON עם מפתח: differentiation_angles (מערך 3 פריטים)'''
 
         res15 = client.chat.completions.create(
-            model=MODEL_NAME,
+            model=MODEL_STRATEGY,
             messages=[
                 {"role": "system", "content": sys15},
                 {"role": "user", "content": user15}
@@ -257,7 +260,7 @@ async def generate_workshop(request: WorkshopRequest):
         user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{request.topic}") לקהל "{request.audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
         
         res2 = client.chat.completions.create(
-            model=MODEL_NAME,
+            model=MODEL_SYLLABUS,
             messages=[
                 {"role": "system", "content": sys2},
                 {"role": "user", "content": user2}
@@ -312,7 +315,7 @@ slides: מערך של 8 שקפים בדיוק — כל שקף:
   - image_prompt: תיאור תמונה באנגלית"""
         
         res3 = client.chat.completions.create(
-            model=MODEL_NAME,
+            model=MODEL_CONTENT,
             messages=[
                 {"role": "system", "content": sys3},
                 {"role": "user", "content": user3}
