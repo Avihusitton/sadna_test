@@ -11,6 +11,7 @@ describe('useStore', () => {
   it('should initialize with correct default state', () => {
     const state = useStore.getState();
     expect(state.topic).toBe('');
+    expect(state.audience).toBe('');
     expect(state.history).toEqual([]);
     expect(state.status).toBe('idle');
     expect(state.currentTask).toBeNull();
@@ -32,6 +33,11 @@ describe('useStore', () => {
   it('should set topic', () => {
     useStore.getState().setTopic('React Performance');
     expect(useStore.getState().topic).toBe('React Performance');
+  });
+
+  it('should set audience', () => {
+    useStore.getState().setAudience('Test Audience');
+    expect(useStore.getState().audience).toBe('Test Audience');
   });
 
   it('should add history items', () => {
@@ -113,6 +119,7 @@ describe('useStore', () => {
     useStore.getState().setStage15Done(true);
     useStore.getState().setStage2Done(true);
     useStore.getState().setStage3Done(true);
+    useStore.getState().setAudience('test-audience');
 
     expect(useStore.getState().marketAnalysis).not.toBeNull();
     expect(useStore.getState().status).toBe('generating');
@@ -121,6 +128,7 @@ describe('useStore', () => {
     expect(useStore.getState().stage15Done).toBe(true);
     expect(useStore.getState().stage2Done).toBe(true);
     expect(useStore.getState().stage3Done).toBe(true);
+    expect(useStore.getState().audience).toBe('test-audience');
 
     useStore.getState().resetWorkshop();
 
@@ -131,5 +139,6 @@ describe('useStore', () => {
     expect(useStore.getState().stage15Done).toBe(false);
     expect(useStore.getState().stage2Done).toBe(false);
     expect(useStore.getState().stage3Done).toBe(false);
+    expect(useStore.getState().audience).toBe('');
   });
 });

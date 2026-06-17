@@ -29,10 +29,38 @@ MODEL_RESEARCH   = "meta/llama-3.3-70b-instruct"        # Stage 1
 MODEL_STRATEGY   = "meta/llama-3.3-70b-instruct"  # Stage 1.5
 MODEL_SYLLABUS   = "meta/llama-3.3-70b-instruct"        # Stage 2
 MODEL_CONTENT    = "moonshotai/kimi-k2.6"                  # Stage 3
+MODEL_SEARCH     = "perplexity/llama-3.1-sonar-large-128k-online"
 
 class WorkshopRequest(BaseModel):
     topic: str
     audience: str
+    customization: Optional[Dict[str, Any]] = None
+
+class Stage1Request(BaseModel):
+    topic: str
+    audience: str
+    customization: Optional[Dict[str, Any]] = None
+
+class Stage15Request(BaseModel):
+    topic: str
+    audience: str
+    stage1: Dict[str, Any]
+    customization: Optional[Dict[str, Any]] = None
+
+class Stage2Request(BaseModel):
+    topic: str
+    audience: str
+    stage1: Dict[str, Any]
+    interpreted_topic: str
+    customization: Optional[Dict[str, Any]] = None
+
+class Stage3Request(BaseModel):
+    topic: str
+    audience: str
+    stage1: Dict[str, Any]
+    stage2: Dict[str, Any]
+    differentiation_angles: list
+    interpreted_topic: str
     customization: Optional[Dict[str, Any]] = None
 
 def load_all_constants():
@@ -112,7 +140,6 @@ def safe_get_list(data: Any, key: str) -> list:
         val = data.get(key, [])
         return val if isinstance(val, list) else []
     elif isinstance(data, list):
-        # If it is a list of dicts, search for the key
         for item in data:
             if isinstance(item, dict) and key in item:
                 val = item.get(key)
@@ -121,20 +148,27 @@ def safe_get_list(data: Any, key: str) -> list:
         return data
     return []
 
-@app.post("/api/generate")
-async def generate_workshop(request: WorkshopRequest):
-    if not NVIDIA_API_KEY:
-        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
-    
+def search_market_data(topic: str, audience: str) -> str:
     try:
-        brand_voice, strengths, target_audience, methodology = load_all_constants()
-        
-        # Build context strings
-        brand_context = f"ערכי המותג:\n- טון: {brand_voice.get('tone')}\n- סגנון: {brand_voice.get('uniqueStyle')}\n- ערכים: {', '.join(brand_voice.get('values', []))}\nחוזקות:\n" + "\n".join(f"- {s}" for s in strengths) + "\nקהל יעד:\n" + "\n".join(f"- {t}" for t in target_audience)
-        methodology_context = f"שיטת {methodology.get('name')}:\n- מטאפורה: {methodology.get('coreMetaphor')}\n- עקרונות:\n" + "\n".join(f"- {p}" for p in methodology.get('principles', [])) + "\n- כלים:\n" + "\n".join(f"- {c}" for c in methodology.get('toolsAndConcepts', []))
-        
-        # Stage 1 — Market Research (CMO Persona), temperature: 0.3
-        sys1 = """אתה אסטרטג שיווקי ומומחה לפיתוח עסקי בשוק ההדרכות וסדנאות בישראל.
+        res = client.chat.completions.create(
+            model=MODEL_SEARCH,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"חפש מידע עדכני על שוק ההדרכות בישראל בנושא: {topic}\nקהל יעד: {audience}\nאני רוצה: מחירים עדכניים, מתחרים פעילים, ביקוש, פערים בשוק.\nהחזר עובדות ספציפיות עם מקורות."
+                }
+            ],
+            temperature=0.1
+        )
+        return res.choices[0].message.content or ""
+    except Exception as e:
+        print("Search market data failed:", e)
+        return ""
+
+def execute_stage1(topic: str, audience: str) -> Dict[str, Any]:
+    search_results = search_market_data(topic, audience)
+    
+    sys1 = """אתה אסטרטג שיווקי ומומחה לפיתוח עסקי בשוק ההדרכות וסדנאות בישראל.
 אתה עובד עם אביהו סיטון — פסיכותרפיסט עם רקע ייחודי:
 - מהנדס בוגר הטכניון בהצטיינות
 - ניהל פרויקטי ביצוע ברכבת ישראל — תשתיות, מאות מיליוני ש"ח, ניהול אנשים בשטח תחת לחץ
@@ -146,9 +180,9 @@ async def generate_workshop(request: WorkshopRequest):
 שאל את עצמך: היכן הכאב האנושי של הקהל הזה פוגש את האחריות המקצועית שלו?
 רק אחרי שזיהית את הכאב — נתח את השוק.
 החזר JSON בלבד, ללא טקסט נוסף."""
-        
-        user1 = f'''נושא שהוצע: "{request.topic}"
-קהל יעד: "{request.audience}"
+    
+    user1 = f'''נושא שהוצע: "{topic}"
+קהל יעד: "{audience}"
 
 שלב א — פרש את הכוונה: מה הכאב הרגשי האמיתי של הקהל הזה? אל תצטט את הנושא — נתח אותו לעומק.
 שלב ב — ניתוח שוק ישראלי: מה קיים היום? מה גנרי? היכן יש ביקוש שלא מקבל מענה ייחודי?
@@ -160,22 +194,24 @@ async def generate_workshop(request: WorkshopRequest):
 - objections: מערך 3 התנגדויות מכירה אמיתיות
 - hooks: מערך 3 הוקים שיווקיים חדים
 - market_gap: משפט אחד — הפער שאביהו יכול למלא שמהנדס-מפקד-מטפל יכול למלא ואף מרצה אחר לא'''
+    
+    if search_results:
+        user1 = f"{user1}\n\nנתוני שוק עדכניים מהאינטרנט:\n{search_results}"
         
-        res1 = client.chat.completions.create(
-            model=MODEL_RESEARCH,
-            messages=[
-                {"role": "system", "content": sys1},
-                {"role": "user", "content": user1}
-            ],
-            temperature=0.3
-        )
-        stage1_output = res1.choices[0].message.content
-        stage1_json = extract_json(stage1_output)
-        
-        # Fix 2 & 3 — Stage 1.5: Differentiation Angles via AI, temperature: 0.4
-        interpreted_topic = stage1_json.get("interpreted_topic", request.topic)
-        
-        sys15 = """אתה יועץ מיצוב אסטרטגי בכיר. תפקידך: לזהות בידול שלא ניתן להעתיק.
+    res1 = client.chat.completions.create(
+        model=MODEL_RESEARCH,
+        messages=[
+            {"role": "system", "content": sys1},
+            {"role": "user", "content": user1}
+        ],
+        temperature=0.3
+    )
+    return extract_json(res1.choices[0].message.content)
+
+def execute_stage15(topic: str, audience: str, stage1_json: Dict[str, Any]) -> Dict[str, Any]:
+    interpreted_topic = stage1_json.get("interpreted_topic", topic)
+    
+    sys15 = """אתה יועץ מיצוב אסטרטגי בכיר. תפקידך: לזהות בידול שלא ניתן להעתיק.
 
 פרופיל אביהו סיטון — קרא בעיון:
 - מהנדס טכניון + ניהל תשתיות רכבת (לא יועץ ארגוני — מנהל שטח עם תקציב אמיתי ואנשים אמיתיים)
@@ -187,7 +223,7 @@ async def generate_workshop(request: WorkshopRequest):
 לא "ניסיון עשיר" — ספציפי: "ניהלתי 200 עובדים בפרויקט תשתיות תחת לחץ, ואז הבנתי שהלחץ האמיתי לא היה בפרויקט"
 החזר JSON בלבד, ללא טקסט נוסף."""
 
-        user15 = f'''נושא: "{interpreted_topic}" | קהל: "{request.audience}"
+    user15 = f'''נושא: "{interpreted_topic}" | קהל: "{audience}"
 ניתוח שוק: {json.dumps(stage1_json, ensure_ascii=False)}
 
 צור 3 זוויות בידול אמיתיות לאביהו. לכל זווית:
@@ -199,79 +235,84 @@ async def generate_workshop(request: WorkshopRequest):
 
 החזר JSON עם מפתח: differentiation_angles (מערך 3 פריטים)'''
 
-        res15 = client.chat.completions.create(
-            model=MODEL_STRATEGY,
-            messages=[
-                {"role": "system", "content": sys15},
-                {"role": "user", "content": user15}
-            ],
-            temperature=0.4
-        )
-        stage15_output = res15.choices[0].message.content
-        stage15_json = extract_json(stage15_output)
-        differentiation_angles = stage15_json.get("differentiation_angles", [])
-        
-        # Add economicPotential, defensibility, and id fields for the frontend
-        for idx, angle in enumerate(differentiation_angles):
-            angle["id"] = idx + 1
-            angle["defensibility"] = angle.pop("why_avihu_only", "")
-            angle["economicPotential"] = "High" if angle.get("isWinner") else "Medium"
+    res15 = client.chat.completions.create(
+        model=MODEL_STRATEGY,
+        messages=[
+            {"role": "system", "content": sys15},
+            {"role": "user", "content": user15}
+        ],
+        temperature=0.4
+    )
+    stage15_json = extract_json(res15.choices[0].message.content)
+    differentiation_angles = stage15_json.get("differentiation_angles", [])
+    
+    for idx, angle in enumerate(differentiation_angles):
+        angle["id"] = idx + 1
+        angle["defensibility"] = angle.pop("why_avihu_only", "")
+        angle["economicPotential"] = "High" if angle.get("isWinner") else "Medium"
 
-        if not isinstance(differentiation_angles, list) or len(differentiation_angles) == 0:
-            differentiation_angles = [
-                {
-                    "id": 1,
-                    "title": "דרך אל עצמאות רגשית",
-                    "description": f"חיבור הנושא של \"{interpreted_topic}\" לתפיסת נהר החיים - ללמד אנשים להשתמש בכלים של 'שיטת דרך' כדי להיות המטפלים של עצמם.",
-                    "isWinner": True,
-                    "economicPotential": "High",
-                    "defensibility": "ניהל פרויקטים בתשתיות תחת לחץ ואז עבר לטפל במנהלים — הוא חי את שני הצדדים.",
-                    "positioningStatement": f"הסדנה היחידה לנושא \"{interpreted_topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח."
-                },
-                {
-                    "id": 2,
-                    "title": "ממשבר למנוע צמיחה",
-                    "description": "התמקדות בקושי כמקור לצמיחה. שינוי פרספקטיבה על תסמינים כניסיון של הנפש להגיע לאיזון.",
-                    "isWinner": False,
-                    "economicPotential": "Medium",
-                    "defensibility": "מפקד לוחם במילואים המשלב ניסיון פיקודי עם טיפול מעשי במשברים בשטח.",
-                    "positioningStatement": f"להפוך את הקושי סביב \"{interpreted_topic}\" למנוף לצמיחה אישית, בגובה העיניים ובמרחב בטוח."
-                },
-                {
-                    "id": 3,
-                    "title": "חיבור זוגי ומשפחתי מתוך משבר",
-                    "description": "זווית המותאמת ספציפית למילואימניקים או זוגות - איך הנושא משפיע על התא המשפחתי.",
-                    "isWinner": False,
-                    "economicPotential": "Medium",
-                    "defensibility": "עובד עם ויצו ומילואימניקים ומשלב ניסיון אישי של חזרה הביתה לאחר שירות קרבי.",
-                    "positioningStatement": f"עיבוד וחזרה לשגרה: התמודדות עם \"{interpreted_topic}\" מתוך אחדות ועצמאות בקשר הזוגי."
-                }
-            ]
+    if not isinstance(differentiation_angles, list) or len(differentiation_angles) == 0:
+        differentiation_angles = [
+            {
+                "id": 1,
+                "title": "דרך אל עצמאות רגשית",
+                "description": f"חיבור הנושא של \"{interpreted_topic}\" לתפיסת נהר החיים - ללמד אנשים להשתמש בכלים של 'שיטת דרך' כדי להיות המטפלים של עצמם.",
+                "isWinner": True,
+                "economicPotential": "High",
+                "defensibility": "ניהל פרויקטים בתשתיות תחת לחץ ואז עבר לטפל במנהלים — הוא חי את שני הצדדים.",
+                "positioningStatement": f"הסדנה היחידה לנושא \"{interpreted_topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח."
+            },
+            {
+                "id": 2,
+                "title": "ממשבר למנוע צמיחה",
+                "description": "התמקדות בקושי כמקור לצמיחה. שינוי פרספקטיבה על תסמינים כניסיון של הנפש להגיע לאיזון.",
+                "isWinner": False,
+                "economicPotential": "Medium",
+                "defensibility": "מפקד לוחם במילואים המשלב ניסיון פיקודי עם טיפול מעשי במשברים בשטח.",
+                "positioningStatement": f"להפוך את הקושי סביב \"{interpreted_topic}\" למנוף לצמיחה אישית, בגובה העיניים ובמרחב בטוח."
+            },
+            {
+                "id": 3,
+                "title": "חיבור זוגי ומשפחתי מתוך משבר",
+                "description": "זווית המותאמת ספציפית למילואימניקים או זוגות - איך הנושא משפיע על התא המשפחתי.",
+                "isWinner": False,
+                "economicPotential": "Medium",
+                "defensibility": "עובד עם ויצו ומילואימניקים ומשלב ניסיון אישי של חזרה הביתה לאחר שירות קרבי.",
+                "positioningStatement": f"עיבוד וחזרה לשגרה: התמודדות עם \"{interpreted_topic}\" מתוך אחדות ועצמאות בקשר הזוגי."
+            }
+        ]
         
-        # Stage 2 — Syllabus (Pedagogue Persona), temperature: 0.5
-        sys2 = f"""אתה פדגוג מומחה בבניית סדנאות פרונטליות בישראל.
+    return {"differentiation_angles": differentiation_angles}
+
+def execute_stage2(topic: str, audience: str, stage1_json: Dict[str, Any], interpreted_topic: str) -> Dict[str, Any]:
+    brand_voice, strengths, target_audience, methodology = load_all_constants()
+    methodology_context = f"שיטת {methodology.get('name')}:\n- מטאפורה: {methodology.get('coreMetaphor')}\n- עקרונות:\n" + "\n".join(f"- {p}" for p in methodology.get('principles', [])) + "\n- כלים:\n" + "\n".join(f"- {c}" for c in methodology.get('toolsAndConcepts', []))
+    
+    sys2 = f"""אתה פדגוג מומחה בבניית סדנאות פרונטליות בישראל.
 אתה בונה תכנית עבור אביהו סיטון המשתמש בשיטת "דרך": נקודת הבחירה, שלושת הכוחות, לעבור דרך כאב.
 הטון: חם, ישיר, לא אקדמי. ללא ז'רגון קליני.
 החזר JSON בלבד, ללא טקסט נוסף.
 
 פרטי רקע על שיטת העבודה:
 {methodology_context}"""
-        
-        user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{request.topic}") לקהל "{request.audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
-        
-        res2 = client.chat.completions.create(
-            model=MODEL_SYLLABUS,
-            messages=[
-                {"role": "system", "content": sys2},
-                {"role": "user", "content": user2}
-            ],
-            temperature=0.5
-        )
-        stage2_output = res2.choices[0].message.content
-        stage2_json = extract_json(stage2_output)
-        
-        # Stage 3 — Slide Materials (Copywriter Persona), temperature: 0.7
-        sys3 = f"""אתה מומחה לבניית סדנאות פרונטליות — לא קופירייטר. אתה יוצר חומרי הנחיה אמיתיים.
+    
+    user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{topic}") לקהל "{audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
+    
+    res2 = client.chat.completions.create(
+        model=MODEL_SYLLABUS,
+        messages=[
+            {"role": "system", "content": sys2},
+            {"role": "user", "content": user2}
+        ],
+        temperature=0.5
+    )
+    return extract_json(res2.choices[0].message.content)
+
+def execute_stage3(topic: str, audience: str, stage1_json: Dict[str, Any], stage2_json: Dict[str, Any], differentiation_angles: list, interpreted_topic: str) -> Dict[str, Any]:
+    brand_voice, strengths, target_audience, methodology = load_all_constants()
+    brand_context = f"ערכי המותג:\n- טון: {brand_voice.get('tone')}\n- סגנון: {brand_voice.get('uniqueStyle')}\n- ערכים: {', '.join(brand_voice.get('values', []))}\nחוזקות:\n" + "\n".join(f"- {s}" for s in strengths) + "\nקהל יעד:\n" + "\n".join(f"- {t}" for t in target_audience)
+    
+    sys3 = f"""אתה מומחה לבניית סדנאות פרונטליות — לא קופירייטר. אתה יוצר חומרי הנחיה אמיתיים.
 אתה בונה עבור אביהו סיטון.
 
 פרופיל אביהו (חייב להופיע בשקף הפתיחה):
@@ -298,10 +339,10 @@ async def generate_workshop(request: WorkshopRequest):
 החזר JSON בלבד, ללא טקסט נוסף.
 
 {brand_context}"""
-        
-        user3 = f"""בנה חומרי סדנה מלאים בהתבסס על:
+
+    user3 = f"""בנה חומרי סדנה מלאים בהתבסס על:
 סילבוס: {json.dumps(stage2_json, ensure_ascii=False)}
-נושא: "{interpreted_topic}" | קהל: "{request.audience}"
+נושא: "{interpreted_topic}" | קהל: "{audience}"
 נקודות כאב: {json.dumps(safe_get_list(stage1_json, 'pain_points'), ensure_ascii=False)}
 בידול מנצח: {json.dumps(next((a for a in differentiation_angles if a.get('isWinner')), {}), ensure_ascii=False)}
 
@@ -313,24 +354,75 @@ slides: מערך של 8 שקפים בדיוק — כל שקף:
   - bullets: מערך של 2-3 משפטים אנושיים (לא bullet list יבש)
   - facilitator_note: הערה קצרה למנחה — מה לומר או לשאול (משפט אחד)
   - image_prompt: תיאור תמונה באנגלית"""
+
+    res3 = client.chat.completions.create(
+        model=MODEL_CONTENT,
+        messages=[
+            {"role": "system", "content": sys3},
+            {"role": "user", "content": user3}
+        ],
+        temperature=0.7
+    )
+    stage3_json = extract_json(res3.choices[0].message.content)
+    return {"slides": safe_get_list(stage3_json, "slides")}
+
+@app.post("/api/stage1")
+async def run_stage1(request: Stage1Request):
+    if not NVIDIA_API_KEY:
+        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
+    try:
+        return execute_stage1(request.topic, request.audience)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/stage15")
+async def run_stage15(request: Stage15Request):
+    if not NVIDIA_API_KEY:
+        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
+    try:
+        return execute_stage15(request.topic, request.audience, request.stage1)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/stage2")
+async def run_stage2(request: Stage2Request):
+    if not NVIDIA_API_KEY:
+        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
+    try:
+        return execute_stage2(request.topic, request.audience, request.stage1, request.interpreted_topic)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/stage3")
+async def run_stage3(request: Stage3Request):
+    if not NVIDIA_API_KEY:
+        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
+    try:
+        return execute_stage3(request.topic, request.audience, request.stage1, request.stage2, request.differentiation_angles, request.interpreted_topic)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/generate")
+async def generate_workshop(request: WorkshopRequest):
+    if not NVIDIA_API_KEY:
+        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
+    
+    try:
+        stage1 = execute_stage1(request.topic, request.audience)
+        interpreted_topic = stage1.get("interpreted_topic", request.topic)
         
-        res3 = client.chat.completions.create(
-            model=MODEL_CONTENT,
-            messages=[
-                {"role": "system", "content": sys3},
-                {"role": "user", "content": user3}
-            ],
-            temperature=0.7
-        )
-        stage3_output = res3.choices[0].message.content
-        stage3_json = extract_json(stage3_output)
+        stage15 = execute_stage15(request.topic, request.audience, stage1)
+        differentiation_angles = stage15.get("differentiation_angles", [])
         
-        # Synthesize front-end marketResearch payload
-        pains_str = ", ".join(safe_get_list(stage1_json, "pain_points"))
-        objs_str = ", ".join(safe_get_list(stage1_json, "objections"))
+        stage2 = execute_stage2(request.topic, request.audience, stage1, interpreted_topic)
+        stage3 = execute_stage3(request.topic, request.audience, stage1, stage2, differentiation_angles, interpreted_topic)
+        
+        # Build legacy format
+        pains_str = ", ".join(safe_get_list(stage1, "pain_points"))
+        objs_str = ", ".join(safe_get_list(stage1, "objections"))
         
         landscape = f"ניתוח שוק עבור סדנת \"{interpreted_topic}\" לקהל היעד \"{request.audience}\" מראה כי נקודות הכאב המרכזיות הן: {pains_str}. המשתתפים מביעים חששות והתנגדויות בעיקר סביב: {objs_str}."
-        gaps = stage1_json.get("market_gap", "חסר חיבור אמיתי בין ידע תיאורטי לעבודה רגשית עמוקה שיורדת לחיי היומיום. רוב התכנים נשארים ברמת התיאוריה.")
+        gaps = stage1.get("market_gap", "חסר חיבור אמיתי בין ידע תיאורטי לעבודה רגשית עמוקה שיורדת לחיי היומיום. רוב התכנים נשארים ברמת התיאוריה.")
         pricing = "150-300 ש״ח למשתתף, 3000-5000 ש״ח לארגון (מפגש חד פעמי)"
         
         market_research_payload = {
@@ -340,7 +432,6 @@ slides: מערך של 8 שקפים בדיוק — כל שקף:
             "gaps": gaps
         }
         
-        # Construct economicValidation
         duration = request.customization.get("duration", "half-day") if request.customization else "half-day"
         duration_map = {
             "90-min": "90 דקות (הרצאה אקטיבית)",
@@ -359,17 +450,16 @@ slides: מערך של 8 שקפים בדיוק — כל שקף:
             "breakevenSize": 12
         }
         
-        # Combine everything
         return {
             "topic": request.topic,
             "interpreted_topic": interpreted_topic,
-            "market_gap": stage1_json.get("market_gap", ""),
+            "market_gap": stage1.get("market_gap", ""),
             "marketResearch": market_research_payload,
             "differentiationAngles": differentiation_angles,
             "economicValidation": economic_validation,
-            "syllabus": stage2_json,
-            "slides": safe_get_list(stage3_json, "slides"),
-            "stage1_raw": stage1_json
+            "syllabus": stage2,
+            "slides": stage3.get("slides", []),
+            "stage1_raw": stage1
         }
         
     except Exception as e:

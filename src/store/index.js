@@ -4,6 +4,9 @@ export const useStore = create((set) => ({
   topic: '',
   setTopic: (topic) => set({ topic }),
 
+  audience: '',
+  setAudience: (audience) => set({ audience }),
+
   history: [],
   addHistory: (item) => set((state) => ({ history: [item, ...state.history] })),
 
@@ -59,5 +62,6 @@ export const useStore = create((set) => ({
     stage15Done: false,
     stage2Done: false,
     stage3Done: false,
+    audience: '',
   })
 }));

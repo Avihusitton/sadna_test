@@ -6,7 +6,7 @@ import { Target, TrendingUp, AlertTriangle, CheckCircle, ArrowLeft, Sparkles } f
 import ProgressChecklist from '../components/ProgressChecklist';
 
 export default function MarketAnalysis() {
-  const { topic, status, setStatus, setCurrentTask, marketAnalysis, setMarketAnalysis } = useStore();
+  const { topic, audience, status, setStatus, setCurrentTask, marketAnalysis, setMarketAnalysis } = useStore();
   const navigate = useNavigate();
   const [localError, setLocalError] = useState(null);
   const [editingAngle, setEditingAngle] = useState(false);
@@ -18,8 +18,6 @@ export default function MarketAnalysis() {
       return;
     }
 
-    const timers = [];
-
     const runAnalysis = async () => {
       setStatus('generating');
       setLocalError(null);
@@ -29,32 +27,10 @@ export default function MarketAnalysis() {
       store.setStage15Done(false);
       store.setStage2Done(false);
       store.setStage3Done(false);
-      setCurrentTask('מחקר שוק ואנליזה');
-
-      timers.push(setTimeout(() => {
-        if (useStore.getState().status === 'generating') {
-          store.setStage1Done(true);
-          setCurrentTask('מיצוב ובידול');
-        }
-      }, 4000));
-
-      timers.push(setTimeout(() => {
-        if (useStore.getState().status === 'generating') {
-          store.setStage15Done(true);
-          setCurrentTask('בניית סילבוס');
-        }
-      }, 8000));
-
-      timers.push(setTimeout(() => {
-        if (useStore.getState().status === 'generating') {
-          store.setStage2Done(true);
-          setCurrentTask('יצירת שקפים ותוכן');
-        }
-      }, 12000));
+      setCurrentTask('מחבר לשרת ומריץ אנליזת שוק...');
 
       try {
-        const result = await runMarketAnalysisPipeline(topic, setCurrentTask);
-        timers.forEach(clearTimeout);
+        const result = await runMarketAnalysisPipeline(topic, audience, setCurrentTask);
         
         if (result.error) {
           if (result.error === "NO_DIFFERENTIATION") {
@@ -64,16 +40,10 @@ export default function MarketAnalysis() {
           }
           setStatus('error');
         } else {
-          store.setStage1Done(true);
-          store.setStage15Done(true);
-          store.setStage2Done(true);
-          store.setStage3Done(true);
-          
           setMarketAnalysis(result);
           setStatus('done');
         }
       } catch (e) {
-        timers.forEach(clearTimeout);
         console.error("Pipeline error:", e);
         setLocalError(`שגיאה בלתי צפויה: ${e?.message ?? e}`);
         setStatus('error');
@@ -83,10 +53,6 @@ export default function MarketAnalysis() {
     if (!marketAnalysis || marketAnalysis.topic !== topic) {
       runAnalysis();
     }
-
-    return () => {
-      timers.forEach(clearTimeout);
-    };
   }, [topic, navigate]);
 
   if (status === 'generating') {

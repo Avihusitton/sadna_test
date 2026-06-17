@@ -5,19 +5,35 @@ import { Sparkles, Clock, History } from 'lucide-react';
 
 export default function TopicInput() {
   const [inputTopic, setInputTopic] = useState('');
+  const [inputAudience, setInputAudience] = useState('');
   const [error, setError] = useState(null);
+  const [audienceError, setAudienceError] = useState(null);
   const navigate = useNavigate();
 
-  const { setTopic, history, status, currentTask } = useStore();
+  const { setTopic, setAudience, history, status, currentTask } = useStore();
 
   const handleGenerate = async (e) => {
     e.preventDefault();
+    let hasError = false;
+
     if (!inputTopic.trim()) {
       setError('נא להזין נושא לסדנה');
-      return;
+      hasError = true;
+    } else {
+      setError(null);
     }
-    setError(null);
+
+    if (!inputAudience.trim()) {
+      setAudienceError('נא להזין קהל יעד');
+      hasError = true;
+    } else {
+      setAudienceError(null);
+    }
+
+    if (hasError) return;
+
     setTopic(inputTopic);
+    setAudience(inputAudience);
     navigate('/analysis');
   };
 
@@ -51,6 +67,24 @@ export default function TopicInput() {
               />
             </div>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="audience" className="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+              קהל יעד
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <input
+                type="text"
+                name="audience"
+                id="audience"
+                className={`focus:ring-green-500 focus:border-green-500 block w-full text-lg sm:text-xl border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${audienceError ? 'border-red-300 ring-red-500' : ''}`}
+                placeholder="למשל: מנהלים בכירים, מילואימניקים..."
+                value={inputAudience}
+                onChange={(e) => setInputAudience(e.target.value)}
+              />
+            </div>
+            {audienceError && <p className="mt-2 text-sm text-red-600">{audienceError}</p>}
           </div>
 
           <div className="flex justify-end">
