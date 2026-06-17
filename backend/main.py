@@ -131,15 +131,32 @@ async def generate_workshop(request: WorkshopRequest):
         methodology_context = f"שיטת {methodology.get('name')}:\n- מטאפורה: {methodology.get('coreMetaphor')}\n- עקרונות:\n" + "\n".join(f"- {p}" for p in methodology.get('principles', [])) + "\n- כלים:\n" + "\n".join(f"- {c}" for c in methodology.get('toolsAndConcepts', []))
         
         # Stage 1 — Market Research (CMO Persona), temperature: 0.3
-        sys1 = f"""אתה CMO מנוסה עם 20 שנות ניסיון בשיווק סדנאות בישראל.
-אתה עובד עם המטפל אביהו סיטון. המומחיות שלו: שיטת "דרך" — נהר החיים, עצמאות רגשית, עבודה עם מילואימניקים וזוגות.
-ערכי המותג: חמימות, ישירות, כלים פרקטיים, חיבור גוף-נפש-רוח.
-החזר JSON בלבד, ללא טקסט נוסף.
+        sys1 = """אתה אסטרטג שיווקי ומומחה לפיתוח עסקי בשוק ההדרכות וסדנאות בישראל.
+אתה עובד עם אביהו סיטון — פסיכותרפיסט עם רקע ייחודי:
+- מהנדס בוגר הטכניון בהצטיינות, ניסיון ניהולי של 8+ שנים בפרויקטי ביצוע ברכבת ישראל (מאות מיליוני ש"ח)
+- מפקד לוחם פעיל במילואים
+- פסיכותרפיסט המשלב: עצמאות רגשית, שיטת "דרך", עבודה עם מילואימניקים, זוגות ומנהלים
+- הייחוד: "בן אדם רגיל" — ישיר, אסרטיבי, לא מדבר בז'רגון קליני. מגיע מהשטח לא מהאקדמיה.
+- לקוחות עיקריים: ארגון ויצו, מילואימניקים החוזרים לשגרה, זוגות, מנהלים
 
-פרטי רקע על המותג:
-{brand_context}"""
+כשמקבלים בקשה לסדנה — אל תצטט את הנושא כמחרוזת. נתח מה הכאב האמיתי שעומד מאחורי הבקשה.
+חשוב: מה האתגר הרגשי-מנטלי שהקהל הזה חווה? היכן הכאב האנושי פוגש את האחריות המקצועית/ניהולית?
+רק אחרי שזיהית את הכאב האמיתי — נתח את השוק.
+החזר JSON בלבד, ללא טקסט נוסף."""
         
-        user1 = f'נתח את השוק הישראלי עבור סדנה בנושא "{request.topic}" לקהל: "{request.audience}". החזר JSON עם המפתחות: pain_points (מערך 3 פריטים), objections (מערך 3 פריטים), hooks (מערך 3 פריטים).'
+        user1 = f'''נושא שהוצע: "{request.topic}"
+קהל יעד: "{request.audience}"
+
+שלב א — הבן את הכוונה: מה הכאב האמיתי שעומד מאחורי הנושא הזה עבור הקהל הזה? אל תצטט את הנושא — נתח אותו.
+שלב ב — בצע ניתוח שוק ישראלי: מה קיים היום? מה חסר? היכן יש היתכנות כלכלית גבוהה?
+שלב ג — זהה 3 נקודות כאב ספציפיות לקהל הזה (לא גנריות).
+
+החזר JSON עם:
+- interpreted_topic: הנושא כפי שהבנת אותו (משפט אחד ממוקד)
+- pain_points: מערך 3 פריטים ספציפיים
+- objections: מערך 3 התנגדויות מכירה אמיתיות
+- hooks: מערך 3 הוקים שיווקיים חדים
+- market_gap: משפט אחד — הפער שאביהו יכול למלא ש-99% מהמרצים לא יכולים'''
         
         res1 = client.chat.completions.create(
             model=MODEL_NAME,
@@ -152,6 +169,81 @@ async def generate_workshop(request: WorkshopRequest):
         stage1_output = res1.choices[0].message.content
         stage1_json = extract_json(stage1_output)
         
+        # Fix 2 & 3 — Stage 1.5: Differentiation Angles via AI, temperature: 0.4
+        interpreted_topic = stage1_json.get("interpreted_topic", request.topic)
+        
+        sys15 = """אתה יועץ מיצוב אסטרטגי. תפקידך: לזהות זוויות בידול אמיתיות ולא ניתנות להעתקה.
+
+הפרופיל של אביהו סיטון:
+- רקע: מהנדס טכניון + מנהל פרויקטים בתשתיות (רכבת ישראל) + מפקד מילואים + פסיכותרפיסט
+- הייחוד: מגיע מהשטח. מדבר ישירות. לא קליני. מחבר בין ניהול, לחימה ורגש.
+- שיטה: "דרך" — עצמאות רגשית, נקודת הבחירה, נהר החיים
+- לקוחות: ויצו, מילואימניקים, זוגות, מנהלי ביניים
+
+בידול אמיתי = מה שאביהו יכול לומר שאף מרצה אחר בישראל לא יכול לומר באמינות.
+החזר JSON בלבד, ללא טקסט נוסף."""
+
+        user15 = f'''נושא: "{interpreted_topic}" | קהל: "{request.audience}"
+ניתוח שוק: {json.dumps(stage1_json, ensure_ascii=False)}
+
+צור 3 זוויות בידול אמיתיות לאביהו. לכל זווית:
+- title: שם הזווית (קצר)
+- description: הסבר (2 משפטים)
+- isWinner: true/false (רק אחת true)
+- why_avihu_only: למה רק אביהו יכול לעשות את זה — ספציפי לרקע שלו
+- positioningStatement: משפט מיצוב חד שאפשר לשים בדף נחיתה
+
+החזר JSON עם מפתח: differentiation_angles (מערך 3 פריטים)'''
+
+        res15 = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": sys15},
+                {"role": "user", "content": user15}
+            ],
+            temperature=0.4
+        )
+        stage15_output = res15.choices[0].message.content
+        stage15_json = extract_json(stage15_output)
+        differentiation_angles = stage15_json.get("differentiation_angles", [])
+        
+        # Add economicPotential, defensibility, and id fields for the frontend
+        for idx, angle in enumerate(differentiation_angles):
+            angle["id"] = idx + 1
+            angle["defensibility"] = angle.pop("why_avihu_only", "")
+            angle["economicPotential"] = "High" if angle.get("isWinner") else "Medium"
+
+        if not isinstance(differentiation_angles, list) or len(differentiation_angles) == 0:
+            differentiation_angles = [
+                {
+                    "id": 1,
+                    "title": "דרך אל עצמאות רגשית",
+                    "description": f"חיבור הנושא של \"{interpreted_topic}\" לתפיסת נהר החיים - ללמד אנשים להשתמש בכלים של 'שיטת דרך' כדי להיות המטפלים של עצמם.",
+                    "isWinner": True,
+                    "economicPotential": "High",
+                    "defensibility": "נשען על שפה ייחודית (שיטת דרך) ועל הניסיון הספציפי של אביהו בחיבור בין פרקטיקה, רוח ויהדות - קשה מאוד להעתקה.",
+                    "positioningStatement": f"הסדנה היחידה לנושא \"{interpreted_topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח."
+                },
+                {
+                    "id": 2,
+                    "title": "ממשבר למנוע צמיחה",
+                    "description": "התמקדות בקושי כמקור לצמיחה. שינוי פרספקטיבה על תסמינים כניסיון של הנפש להגיע לאיזון.",
+                    "isWinner": False,
+                    "economicPotential": "Medium",
+                    "defensibility": "גישה עמוקה הדורשת מיומנות הנחיה גבוהה שיש לאביהו.",
+                    "positioningStatement": f"להפוך את הקושי סביב \"{interpreted_topic}\" למנוף לצמיחה אישית, בגובה העיניים ובמרחב בטוח."
+                },
+                {
+                    "id": 3,
+                    "title": "חיבור זוגי ומשפחתי מתוך משבר",
+                    "description": "זווית המותאמת ספציפית למילואימניקים או זוגות - איך הנושא משפיע על התא המשפחתי.",
+                    "isWinner": False,
+                    "economicPotential": "Medium",
+                    "defensibility": "נשען על החוזקות של אביהו בעבודה עם מילואימניקים וזוגות.",
+                    "positioningStatement": f"עיבוד וחזרה לשגרה: התמודדות עם \"{interpreted_topic}\" מתוך אחדות ועצמאות בקשר הזוגי."
+                }
+            ]
+        
         # Stage 2 — Syllabus (Pedagogue Persona), temperature: 0.5
         sys2 = f"""אתה פדגוג מומחה בבניית סדנאות פרונטליות בישראל.
 אתה בונה תכנית עבור אביהו סיטון המשתמש בשיטת "דרך": נקודת הבחירה, שלושת הכוחות, לעבור דרך כאב.
@@ -161,7 +253,7 @@ async def generate_workshop(request: WorkshopRequest):
 פרטי רקע על שיטת העבודה:
 {methodology_context}"""
         
-        user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{request.topic}" לקהל "{request.audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
+        user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{request.topic}") לקהל "{request.audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
         
         res2 = client.chat.completions.create(
             model=MODEL_NAME,
@@ -200,8 +292,8 @@ async def generate_workshop(request: WorkshopRequest):
         pains_str = ", ".join(safe_get_list(stage1_json, "pain_points"))
         objs_str = ", ".join(safe_get_list(stage1_json, "objections"))
         
-        landscape = f"ניתוח שוק עבור סדנת \"{request.topic}\" לקהל היעד \"{request.audience}\" מראה כי נקודות הכאב המרכזיות הן: {pains_str}. המשתתפים מביעים חששות והתנגדויות בעיקר סביב: {objs_str}."
-        gaps = "חסר חיבור אמיתי בין ידע תיאורטי לעבודה רגשית עמוקה שיורדת לחיי היומיום. רוב התכנים נשארים ברמת התיאוריה."
+        landscape = f"ניתוח שוק עבור סדנת \"{interpreted_topic}\" לקהל היעד \"{request.audience}\" מראה כי נקודות הכאב המרכזיות הן: {pains_str}. המשתתפים מביעים חששות והתנגדויות בעיקר סביב: {objs_str}."
+        gaps = stage1_json.get("market_gap", "חסר חיבור אמיתי בין ידע תיאורטי לעבודה רגשית עמוקה שיורדת לחיי היומיום. רוב התכנים נשארים ברמת התיאוריה.")
         pricing = "150-300 ש״ח למשתתף, 3000-5000 ש״ח לארגון (מפגש חד פעמי)"
         
         market_research_payload = {
@@ -210,37 +302,6 @@ async def generate_workshop(request: WorkshopRequest):
             "pricing": pricing,
             "gaps": gaps
         }
-        
-        # Construct differentiationAngles
-        differentiation_angles = [
-            {
-                "id": 1,
-                "title": "דרך אל עצמאות רגשית",
-                "description": f"חיבור הנושא של \"{request.topic}\" לתפיסת נהר החיים - ללמד אנשים להשתמש בכלים של 'שיטת דרך' כדי להיות המטפלים של עצמם.",
-                "isWinner": True,
-                "economicPotential": "High",
-                "defensibility": "נשען על שפה ייחודית (שיטת דרך) ועל הניסיון הספציפי של אביהו בחיבור בין פרקטיקה, רוח ויהדות - קשה מאוד להעתקה.",
-                "positioningStatement": f"הסדנה היחידה לנושא \"{request.topic}\" שמפסיקה לתת 'טיפים' ומתחילה ללמד אותך להיות המטפל של עצמך דרך חיבור בין גוף, נפש ורוח. hooks מובילים: {', '.join(safe_get_list(stage1_json, 'hooks'))}"
-            },
-            {
-                "id": 2,
-                "title": "ממשבר למנוע צמיחה",
-                "description": "התמקדות בקושי כמקור לצמיחה. שינוי פרספקטיבה על תסמינים כניסיון של הנפש להגיע לאיזון.",
-                "isWinner": False,
-                "economicPotential": "Medium",
-                "defensibility": "גישה עמוקה הדורשת מיומנות הנחיה גבוהה שיש לאביהו.",
-                "positioningStatement": f"להפוך את הקושי סביב \"{request.topic}\" למנוף לצמיחה אישית, בגובה העיניים ובמרחב בטוח."
-            },
-            {
-                "id": 3,
-                "title": "חיבור זוגי ומשפחתי מתוך משבר",
-                "description": "זווית המותאמת ספציפית למילואימניקים או זוגות - איך הנושא משפיע על התא המשפחתי.",
-                "isWinner": False,
-                "economicPotential": "High - specific niche",
-                "defensibility": "נשען על החוזקות של אביהו בעבודה עם מילואימניקים וזוגות.",
-                "positioningStatement": f"עיבוד וחזרה לשגרה: התמודדות עם \"{request.topic}\" מתוך אחדות ועצמאות בקשר הזוגי."
-            }
-        ]
         
         # Construct economicValidation
         duration = request.customization.get("duration", "half-day") if request.customization else "half-day"
@@ -264,6 +325,8 @@ async def generate_workshop(request: WorkshopRequest):
         # Combine everything
         return {
             "topic": request.topic,
+            "interpreted_topic": interpreted_topic,
+            "market_gap": stage1_json.get("market_gap", ""),
             "marketResearch": market_research_payload,
             "differentiationAngles": differentiation_angles,
             "economicValidation": economic_validation,
