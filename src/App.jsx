@@ -6,6 +6,7 @@ import TopicInput from './views/TopicInput';
 import MarketAnalysis from './views/MarketAnalysis';
 import GeneratedMaterials from './views/GeneratedMaterials';
 import WorkshopCustomizer from './views/WorkshopCustomizer';
+import SavedWorkshops from './views/SavedWorkshops';
 import { Moon, Sun } from 'lucide-react';
 import { useStore } from './store';
 
@@ -31,6 +32,9 @@ function App() {
                   מחולל הסדנאות של אביהו
                 </span>
               </Link>
+              <Link to="/saved" className="text-sm font-bold text-gray-500 hover:text-[#01696f] dark:text-gray-400 dark:hover:text-[#8bd79b] transition-colors mr-6">
+                הסדנאות השמורות שלי
+              </Link>
             </div>
             
             <div className="flex items-center gap-2">
@@ -51,6 +55,7 @@ function App() {
             <Route path="/analysis" element={<MarketAnalysis />} />
             <Route path="/materials" element={<GeneratedMaterials />} />
             <Route path="/customize" element={<WorkshopCustomizer />} />
+            <Route path="/saved" element={<SavedWorkshops />} />
           </Routes>
         </main>
       </div>

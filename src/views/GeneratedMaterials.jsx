@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Presentation, FileText, Briefcase, Settings, BookOpen, Clock, CheckCircle, Lightbulb } from 'lucide-react';
+import { Presentation, FileText, Briefcase, Settings, BookOpen, Clock, CheckCircle, Lightbulb, Save } from 'lucide-react';
 import SlideDeck from '../components/generators/SlideDeck';
 import Handout from '../components/generators/Handout';
 import WorkshopBrief from '../components/generators/WorkshopBrief';
@@ -164,9 +164,11 @@ function FacilitatorGuide() {
 }
 
 export default function GeneratedMaterials() {
-  const { topic, marketAnalysis } = useStore();
+  const { topic, audience, marketAnalysis } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('slides');
+  const [toastMessage, setToastMessage] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!topic || !marketAnalysis) {
@@ -175,6 +177,43 @@ export default function GeneratedMaterials() {
   }, [topic, marketAnalysis, navigate]);
 
   if (!topic || !marketAnalysis) return null;
+
+  const handleSaveWorkshop = async () => {
+    const defaultTitle = marketAnalysis?.syllabus?.title || marketAnalysis?.syllabus?.workshop_title || topic;
+    const userTitle = window.prompt("הזן שם לשמירת הסדנה:", defaultTitle);
+    
+    if (userTitle === null) return;
+    const trimmedTitle = userTitle.trim();
+    if (!trimmedTitle) {
+      alert("שם הסדנה אינו יכול להיות ריק");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const res = await fetch('http://localhost:8000/api/workshops/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: trimmedTitle,
+          topic: topic,
+          audience: audience || '',
+          data: marketAnalysis
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error('שגיאה בשמירת הסדנה בשרת');
+      }
+
+      setToastMessage("הסדנה נשמרה ✓");
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) {
+      alert(err.message || 'שמירת הסדנה נכשלה');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const title = marketAnalysis?.syllabus?.title || marketAnalysis?.syllabus?.workshop_title || topic;
 
@@ -200,13 +239,23 @@ export default function GeneratedMaterials() {
             <h1 className="text-3xl font-extrabold text-[#01696f] dark:text-[#8bd79b]">חומרי הסדנה מוכנים</h1>
             <p className="text-lg text-gray-700 dark:text-gray-300 mt-1">{title}</p>
           </div>
-          <button
-            onClick={() => navigate('/customize')}
-            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-bold rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none hover:scale-[1.02] active:scale-95 transition-all duration-150 shrink-0"
-          >
-            <Settings className="ml-2 h-4 w-4" />
-            <span>הגדרות מתקדמות</span>
-          </button>
+          <div className="flex gap-2.5 shrink-0 flex-row-reverse">
+            <button
+              onClick={handleSaveWorkshop}
+              disabled={saving}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white bg-[#01696f] hover:bg-[#005a60] focus:outline-none hover:scale-[1.02] active:scale-95 transition-all duration-150 disabled:opacity-50"
+            >
+              <Save className="ml-2 h-4 w-4" />
+              <span>{saving ? 'שומר...' : 'שמור סדנה'}</span>
+            </button>
+            <button
+              onClick={() => navigate('/customize')}
+              className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-bold rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none hover:scale-[1.02] active:scale-95 transition-all duration-150"
+            >
+              <Settings className="ml-2 h-4 w-4" />
+              <span>הגדרות מתקדמות</span>
+            </button>
+          </div>
         </div>
 
         {/* Navigation Tabs Area */}
@@ -246,6 +295,12 @@ export default function GeneratedMaterials() {
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50 bg-[#01696f] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 border border-teal-500/20 animate-reveal">
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

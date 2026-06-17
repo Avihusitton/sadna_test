@@ -1,6 +1,8 @@
 import os
 import re
 import json
+import uuid
+from datetime import datetime
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -538,6 +540,123 @@ async def generate_workshop(request: WorkshopRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class SaveWorkshopRequest(BaseModel):
+    title: str
+    topic: str
+    audience: str
+    data: Dict[str, Any]
+
+@app.post("/api/workshops/save")
+async def save_workshop(request: SaveWorkshopRequest):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    saved_file = os.path.join(script_dir, "saved_workshops.json")
+    
+    workshops = []
+    if os.path.exists(saved_file):
+        try:
+            with open(saved_file, "r", encoding="utf-8") as f:
+                workshops = json.load(f)
+        except Exception as e:
+            print("Error reading saved_workshops.json:", e)
+            workshops = []
+            
+    new_id = str(uuid.uuid4())
+    created_at = datetime.utcnow().isoformat()
+    new_workshop = {
+        "id": new_id,
+        "title": request.title,
+        "topic": request.topic,
+        "audience": request.audience,
+        "createdAt": created_at,
+        "data": request.data
+    }
+    workshops.append(new_workshop)
+    
+    try:
+        with open(saved_file, "w", encoding="utf-8") as f:
+            json.dump(workshops, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save workshop: {str(e)}")
+        
+    return {"id": new_id, "status": "success"}
+
+@app.get("/api/workshops")
+async def list_workshops():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    saved_file = os.path.join(script_dir, "saved_workshops.json")
+    
+    workshops = []
+    if os.path.exists(saved_file):
+        try:
+            with open(saved_file, "r", encoding="utf-8") as f:
+                workshops = json.load(f)
+        except Exception as e:
+            print("Error reading saved_workshops.json:", e)
+            workshops = []
+            
+    result = []
+    for w in workshops:
+        result.append({
+            "id": w.get("id"),
+            "title": w.get("title"),
+            "topic": w.get("topic"),
+            "date": w.get("createdAt")
+        })
+    return result
+
+@app.get("/api/workshops/{id}")
+async def get_workshop(id: str):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    saved_file = os.path.join(script_dir, "saved_workshops.json")
+    
+    if not os.path.exists(saved_file):
+        raise HTTPException(status_code=404, detail="Workshop not found")
+        
+    try:
+        with open(saved_file, "r", encoding="utf-8") as f:
+            workshops = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read workshops: {str(e)}")
+        
+    for w in workshops:
+        if w.get("id") == id:
+            return w
+            
+    raise HTTPException(status_code=404, detail="Workshop not found")
+
+@app.delete("/api/workshops/{id}")
+async def delete_workshop(id: str):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    saved_file = os.path.join(script_dir, "saved_workshops.json")
+    
+    if not os.path.exists(saved_file):
+        raise HTTPException(status_code=404, detail="Workshop not found")
+        
+    try:
+        with open(saved_file, "r", encoding="utf-8") as f:
+            workshops = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read workshops: {str(e)}")
+        
+    found = False
+    new_workshops = []
+    for w in workshops:
+        if w.get("id") == id:
+            found = True
+        else:
+            new_workshops.append(w)
+            
+    if not found:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+        
+    try:
+        with open(saved_file, "w", encoding="utf-8") as f:
+            json.dump(new_workshops, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save workshops: {str(e)}")
+        
+    return {"status": "success"}
 
 if __name__ == "__main__":
     import uvicorn
