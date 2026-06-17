@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Sparkles, Clock, History } from 'lucide-react';
+import { Sparkles, Clock, History, Lightbulb } from 'lucide-react';
 
 export default function TopicInput() {
   const [inputTopic, setInputTopic] = useState('');
@@ -38,109 +38,121 @@ export default function TopicInput() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight sm:text-5xl">
-          מנוע יצירת סדנאות
-        </h1>
-        <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-400 mx-auto">
-          הכנס נושא, ונקבל מחקר שוק, זוויות בידול ועד לחומרים מוכנים להנחיה -
-          הכל מותאם לגישה המקצועית ולערכים של דרך.
-        </p>
+    <div className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
+      {/* Background Layer */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-[#f9f9ff] dark:bg-gray-950">
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-[#a6f4b5]/20 dark:bg-[#a6f4b5]/5 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#b4c5ff]/20 dark:bg-[#b4c5ff]/5 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 mb-12 border border-gray-100 dark:border-gray-700">
-        <form onSubmit={handleGenerate} className="space-y-6">
-          <div>
-            <label htmlFor="topic" className="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-              נושא הסדנה (בעברית או באנגלית)
+      <div className="w-full max-w-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-8 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-[#01696f]/5 animate-reveal">
+        {/* Card Header */}
+        <div className="mb-8 text-right">
+          <h2 className="text-2xl font-extrabold text-[#01696f] dark:text-[#8bd79b] mb-2">בניית סדנה חדשה</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">הגדירו את הנושא וקהל היעד כדי להתחיל בתהליך היצירה המודרך.</p>
+        </div>
+
+        {/* Form Fields */}
+        <form onSubmit={handleGenerate} className="space-y-6 text-right">
+          {/* Workshop Topic */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 pr-1" htmlFor="topic">
+              נושא הסדנה
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <input
-                type="text"
-                name="topic"
-                id="topic"
-                className={`focus:ring-green-500 focus:border-green-500 block w-full text-lg sm:text-xl border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${error ? 'border-red-300 ring-red-500' : ''}`}
-                placeholder="למשל: התמודדות עם חרדה בעבודה, תקשורת מקרבת לזוגות..."
-                value={inputTopic}
-                onChange={(e) => setInputTopic(e.target.value)}
-              />
-            </div>
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            <input
+              type="text"
+              name="topic"
+              id="topic"
+              className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#01696f] dark:focus:ring-[#8bd79b] focus:border-transparent transition-all outline-none text-right text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${error ? 'border-red-300 ring-red-500' : ''}`}
+              placeholder="לדוגמה: ניהול לחץ במילואים"
+              value={inputTopic}
+              onChange={(e) => setInputTopic(e.target.value)}
+            />
+            {error && <p className="text-xs text-red-600 dark:text-red-400 pr-1 mt-1">{error}</p>}
           </div>
 
-          <div>
-            <label htmlFor="audience" className="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {/* Target Audience */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 pr-1" htmlFor="audience">
               קהל יעד
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <input
-                type="text"
-                name="audience"
-                id="audience"
-                className={`focus:ring-green-500 focus:border-green-500 block w-full text-lg sm:text-xl border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${audienceError ? 'border-red-300 ring-red-500' : ''}`}
-                placeholder="למשל: מנהלים בכירים, מילואימניקים..."
-                value={inputAudience}
-                onChange={(e) => setInputAudience(e.target.value)}
-              />
-            </div>
-            {audienceError && <p className="mt-2 text-sm text-red-600">{audienceError}</p>}
+            <input
+              type="text"
+              name="audience"
+              id="audience"
+              className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#01696f] dark:focus:ring-[#8bd79b] focus:border-transparent transition-all outline-none text-right text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${audienceError ? 'border-red-300 ring-red-500' : ''}`}
+              placeholder="לדוגמה: מילואימניקים"
+              value={inputAudience}
+              onChange={(e) => setInputAudience(e.target.value)}
+            />
+            {audienceError && <p className="text-xs text-red-600 dark:text-red-400 pr-1 mt-1">{audienceError}</p>}
           </div>
 
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={status === 'generating'}
-              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
-            >
-              <Sparkles className="ml-2 -mr-1 h-5 w-5" aria-hidden="true" />
-              {status === 'generating' ? 'מייצר...' : 'ייצר סדנה'}
-            </button>
-          </div>
+          {/* Action Button */}
+          <button
+            type="submit"
+            disabled={status === 'generating'}
+            className="w-full mt-4 flex items-center justify-center gap-2 bg-[#01696f] dark:bg-[#1c6938] hover:scale-[1.02] active:scale-95 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <Sparkles className="h-5 w-5" />
+            <span>{status === 'generating' ? 'מעבד...' : 'התחל בניית סילבוס'}</span>
+          </button>
         </form>
 
+        {/* Loading Progress State */}
         {status === 'generating' && currentTask && (
-          <div className="mt-8 border-t border-gray-100 dark:border-gray-700 pt-6">
+          <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-6 text-right">
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">סטטוס יצירה:</h3>
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
+                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-[#01696f] dark:text-[#8bd79b] bg-[#01696f]/10 dark:bg-[#8bd79b]/10">
                     בתהליך
                   </span>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-semibold inline-block text-green-600">
+                <div className="text-left">
+                  <span className="text-xs font-semibold inline-block text-[#01696f] dark:text-[#8bd79b]">
                     {currentTask}
                   </span>
                 </div>
               </div>
-              <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-100">
-                <div style={{ width: "45%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 animate-pulse"></div>
+              <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-100 dark:bg-gray-800">
+                <div style={{ width: "45%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#01696f] dark:bg-[#8bd79b] animate-pulse"></div>
               </div>
             </div>
           </div>
         )}
+
+        {/* Quick Tip / Note Card */}
+        <div className="mt-8 p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-[#01696f]/10 dark:border-[#8bd79b]/10 flex items-start gap-3 text-right">
+          <Lightbulb className="h-5 w-5 text-[#01696f] dark:text-[#8bd79b] shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            <strong>טיפ המנחה:</strong> ככל שתהיו ספציפיים יותר בתיאור קהל היעד, כך המחולל יוכל להציע תכנים מותאמים ומשמעותיים יותר עבור המשתתפים שלכם.
+          </p>
+        </div>
       </div>
 
+      {/* History List */}
       {history.length > 0 && (
-        <div>
-          <div className="flex items-center mb-6">
+        <div className="mt-16 w-full max-w-4xl px-4 animate-reveal">
+          <div className="flex items-center mb-6 justify-start">
             <History className="ml-2 h-6 w-6 text-gray-400 dark:text-gray-500" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">היסטוריית סדנאות</h2>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {history.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer" onClick={() => { setTopic(item.topic); navigate('/materials'); }}>
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2 truncate">
-                    {item.topic}
-                  </h3>
-                  <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Clock className="ml-1.5 h-4 w-4" />
-                    {new Date(item.date).toLocaleDateString('he-IL')}
-                  </p>
-                </div>
+              <div
+                key={idx}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden shadow-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer p-6 text-right"
+                onClick={() => { setTopic(item.topic); navigate('/materials'); }}
+              >
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 truncate">
+                  {item.topic}
+                </h3>
+                <p className="flex items-center justify-end text-sm text-gray-500 dark:text-gray-400">
+                  <span className="ml-1.5">{new Date(item.date).toLocaleDateString('he-IL')}</span>
+                  <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                </p>
               </div>
             ))}
           </div>
