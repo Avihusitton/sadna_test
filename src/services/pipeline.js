@@ -49,6 +49,7 @@ function assembleFinalResult(topic, stage1, stage15, stage2, stage3) {
     economicValidation,
     syllabus: stage2,
     slides: stage3.slides || [],
+    facilitator_guide: stage3.facilitator_guide || [],
     stage1_raw: stage1
   };
 }
@@ -105,6 +106,7 @@ export async function runMarketAnalysisPipeline(topic, audience, setCurrentTask)
   });
   if (!r3.ok) throw new Error(await r3.text());
   const stage3 = await r3.json();
+  useStore.getState().setFacilitatorGuide(stage3.facilitator_guide || []);
   useStore.getState().setStage3Done(true);
 
   // Assemble final result (same shape as before)

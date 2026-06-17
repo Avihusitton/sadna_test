@@ -296,7 +296,11 @@ def execute_stage2(topic: str, audience: str, stage1_json: Dict[str, Any], inter
 פרטי רקע על שיטת העבודה:
 {methodology_context}"""
     
-    user2 = f'בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{topic}") לקהל "{audience}". השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'
+    user2 = f'''בנה סילבוס לסדנה בת 3 שעות בנושא "{interpreted_topic}" (נושא מקורי: "{topic}") לקהל "{audience}".
+כותרת הסדנה חייבת להיות שם שיווקי קצר וחזק (עד 6 מילים) שמבטא את התוצאה או הטרנספורמציה — לא ציטוט של הנושא שהוכנס.
+דוגמאות טובות: 'לחזור שלם', 'מנהל שמחזיק את הצוות', 'שלושה ימים ומה עכשיו'
+אסור: לצטט את מחרוזת הנושא שהתקבלה כ-input.
+השתמש בתובנות: {json.dumps(stage1_json, ensure_ascii=False)}. החזר JSON עם: title, tagline, chapters (מערך 4 פרקים — כל פרק: title, duration_minutes, goal, key_points כמערך 3 פריטים, exercise).'''
     
     res2 = client.chat.completions.create(
         model=MODEL_SYLLABUS,
@@ -336,6 +340,13 @@ def execute_stage3(topic: str, audience: str, stage1_json: Dict[str, Any], stage
 - שקף 1 חייב: "מהנדס + מנהל + לוחם + מטפל — זה הבסיס לאמינות שלי"
 - שקף התרגיל: הוראות ישירות בגוף שני ("כתוב X", "שתף עם השכן שלך Y")
 - טון: חם, ישיר, גובה עיניים. אסור ז'רגון פסיכולוגי.
+
+כללי תרגיל:
+- כל תרגיל חייב להיות ספציפי לקהל: אם קהל = מנהלים, התרגיל עוסק בסיטואציה ניהולית.
+- לא 'מה הכאב שלך' — 'חשוב על עובד שחזר ממילואים: מה עשית? מה רצית לעשות ולא ידעת?'
+- תרגיל זוגי > תרגיל אישי — עדיף שמישהו ישמע.
+- כל תרגיל: הוראה אחת ברורה + שאלה אחת ממוקדת + 5 דקות מוקצות.
+
 החזר JSON בלבד, ללא טקסט נוסף.
 
 {brand_context}"""
@@ -346,14 +357,22 @@ def execute_stage3(topic: str, audience: str, stage1_json: Dict[str, Any], stage
 נקודות כאב: {json.dumps(safe_get_list(stage1_json, 'pain_points'), ensure_ascii=False)}
 בידול מנצח: {json.dumps(next((a for a in differentiation_angles if a.get('isWinner')), {}), ensure_ascii=False)}
 
-החזר JSON עם:
-slides: מערך של 8 שקפים בדיוק — כל שקף:
+החזר JSON עם שני מפתחות מרכזיים:
+1. slides: מערך של 8 שקפים בדיוק — כל שקף:
   - slide_number: מספר (1-8)
   - slide_type: "opening" / "pain" / "tool" / "exercise" / "insight" / "closing"
   - title: כותרת השקף
   - bullets: מערך של 2-3 משפטים אנושיים (לא bullet list יבש)
   - facilitator_note: הערה קצרה למנחה — מה לומר או לשאול (משפט אחד)
-  - image_prompt: תיאור תמונה באנגלית"""
+  - image_prompt: תיאור תמונה באנגלית
+
+2. facilitator_guide: מערך של 4 פריטים (אחד לכל פרק מהסילבוס):
+  - chapter_title: שם הפרק
+  - duration_minutes: זמן מוקצב
+  - opening_question: שאלת פתיחה שאביהו שואל בקול
+  - key_message: מה שחייב לצאת מהפרק הזה (משפט אחד)
+  - exercise_instructions: הוראות מפורטות לאביהו — מה לומר, כמה זמן, מה לצפות
+  - watch_for: מה לשים לב אליו (תגובות רגשיות, התנגדויות, רגעים חשובים)"""
 
     res3 = client.chat.completions.create(
         model=MODEL_CONTENT,
@@ -364,7 +383,10 @@ slides: מערך של 8 שקפים בדיוק — כל שקף:
         temperature=0.7
     )
     stage3_json = extract_json(res3.choices[0].message.content)
-    return {"slides": safe_get_list(stage3_json, "slides")}
+    return {
+        "slides": safe_get_list(stage3_json, "slides"),
+        "facilitator_guide": safe_get_list(stage3_json, "facilitator_guide")
+    }
 
 @app.post("/api/stage1")
 async def run_stage1(request: Stage1Request):
@@ -398,7 +420,11 @@ async def run_stage3(request: Stage3Request):
     if not NVIDIA_API_KEY:
         raise HTTPException(status_code=500, detail="NVIDIA_API_KEY not set in environment")
     try:
-        return execute_stage3(request.topic, request.audience, request.stage1, request.stage2, request.differentiation_angles, request.interpreted_topic)
+        res = execute_stage3(request.topic, request.audience, request.stage1, request.stage2, request.differentiation_angles, request.interpreted_topic)
+        return {
+            "slides": res.get("slides", []),
+            "facilitator_guide": res.get("facilitator_guide", [])
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -459,6 +485,7 @@ async def generate_workshop(request: WorkshopRequest):
             "economicValidation": economic_validation,
             "syllabus": stage2,
             "slides": stage3.get("slides", []),
+            "facilitator_guide": stage3.get("facilitator_guide", []),
             "stage1_raw": stage1
         }
         

@@ -12,6 +12,7 @@ describe('useStore', () => {
     const state = useStore.getState();
     expect(state.topic).toBe('');
     expect(state.audience).toBe('');
+    expect(state.facilitator_guide).toEqual([]);
     expect(state.history).toEqual([]);
     expect(state.status).toBe('idle');
     expect(state.currentTask).toBeNull();
@@ -38,6 +39,12 @@ describe('useStore', () => {
   it('should set audience', () => {
     useStore.getState().setAudience('Test Audience');
     expect(useStore.getState().audience).toBe('Test Audience');
+  });
+
+  it('should set facilitator guide', () => {
+    const guide = [{ chapter_title: 'Introduction', duration_minutes: 30 }];
+    useStore.getState().setFacilitatorGuide(guide);
+    expect(useStore.getState().facilitator_guide).toEqual(guide);
   });
 
   it('should add history items', () => {
@@ -120,6 +127,7 @@ describe('useStore', () => {
     useStore.getState().setStage2Done(true);
     useStore.getState().setStage3Done(true);
     useStore.getState().setAudience('test-audience');
+    useStore.getState().setFacilitatorGuide([{ chapter_title: 'Test Guide' }]);
 
     expect(useStore.getState().marketAnalysis).not.toBeNull();
     expect(useStore.getState().status).toBe('generating');
@@ -129,6 +137,7 @@ describe('useStore', () => {
     expect(useStore.getState().stage2Done).toBe(true);
     expect(useStore.getState().stage3Done).toBe(true);
     expect(useStore.getState().audience).toBe('test-audience');
+    expect(useStore.getState().facilitator_guide).toEqual([{ chapter_title: 'Test Guide' }]);
 
     useStore.getState().resetWorkshop();
 
@@ -140,5 +149,6 @@ describe('useStore', () => {
     expect(useStore.getState().stage2Done).toBe(false);
     expect(useStore.getState().stage3Done).toBe(false);
     expect(useStore.getState().audience).toBe('');
+    expect(useStore.getState().facilitator_guide).toEqual([]);
   });
 });

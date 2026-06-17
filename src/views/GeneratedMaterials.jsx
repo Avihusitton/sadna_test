@@ -1,10 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Presentation, FileText, Briefcase, Settings } from 'lucide-react';
+import { Presentation, FileText, Briefcase, Settings, BookOpen } from 'lucide-react';
 import SlideDeck from '../components/generators/SlideDeck';
 import Handout from '../components/generators/Handout';
 import WorkshopBrief from '../components/generators/WorkshopBrief';
+
+function FacilitatorGuide() {
+  const { marketAnalysis, facilitator_guide } = useStore();
+  const guide = facilitator_guide?.length ? facilitator_guide : (marketAnalysis?.facilitator_guide || []);
+
+  if (!guide || guide.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 dark:text-gray-400">לא נוצר מדריך מנחה עבור סדנה זו.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">מדריך מנחה מפורט</h2>
+      </div>
+
+      <div className="space-y-8">
+        {guide.map((item, index) => (
+          <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-400 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+              {item.chapter_title || `פרק ${index + 1}`} ({item.duration_minutes} דקות)
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">שאלת פתיחה שאביהו שואל בקול:</span>
+                <p className="text-gray-800 dark:text-gray-200 mt-1 italic font-medium">"{item.opening_question}"</p>
+              </div>
+
+              <div>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">מסר מרכזי (מה שחייב לצאת מהפרק):</span>
+                <p className="text-gray-800 dark:text-gray-200 mt-1">{item.key_message}</p>
+              </div>
+
+              <div>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">הוראות מפורטות לאביהו (מה לומר, כמה זמן, מה לצפות):</span>
+                <p className="text-gray-800 dark:text-gray-200 mt-1 whitespace-pre-line bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-100 dark:border-gray-800">{item.exercise_instructions}</p>
+              </div>
+
+              <div>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">שים לב ל- (תגובות רגשיות, התנגדויות, רגעים חשובים):</span>
+                <p className="text-gray-800 dark:text-gray-200 mt-1">{item.watch_for}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function GeneratedMaterials() {
   const { topic, marketAnalysis } = useStore();
@@ -23,6 +76,7 @@ export default function GeneratedMaterials() {
     { id: 'slides', name: 'מצגת למנחה', icon: Presentation },
     { id: 'handout', name: 'חוברת למשתתף', icon: FileText },
     { id: 'brief', name: 'בריף שיווקי', icon: Briefcase },
+    { id: 'guide', name: 'מדריך מנחה', icon: BookOpen },
   ];
 
   return (
@@ -73,6 +127,7 @@ export default function GeneratedMaterials() {
           {activeTab === 'slides' && <SlideDeck />}
           {activeTab === 'handout' && <Handout />}
           {activeTab === 'brief' && <WorkshopBrief />}
+          {activeTab === 'guide' && <FacilitatorGuide />}
         </div>
       </div>
     </div>

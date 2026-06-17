@@ -7,6 +7,9 @@ export const useStore = create((set) => ({
   audience: '',
   setAudience: (audience) => set({ audience }),
 
+  facilitator_guide: [],
+  setFacilitatorGuide: (v) => set({ facilitator_guide: v }),
+
   history: [],
   addHistory: (item) => set((state) => ({ history: [item, ...state.history] })),
 
@@ -63,5 +66,6 @@ export const useStore = create((set) => ({
     stage2Done: false,
     stage3Done: false,
     audience: '',
+    facilitator_guide: [],
   })
 }));
