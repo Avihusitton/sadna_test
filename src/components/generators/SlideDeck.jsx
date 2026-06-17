@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { RefreshCw, Play } from 'lucide-react';
 import Particles from './Particles';
@@ -63,137 +63,59 @@ export default function SlideDeck() {
     );
   }
 
-  const winningAngle = marketAnalysis?.differentiationAngles?.find(a => a.isWinner);
+  const slides_data = marketAnalysis?.slides || [];
 
-  const slides = [
+  const slides = slides_data.length > 0 ? slides_data.map((slide, index) => ({
+    id: `slide-${index}`,
+    content: (
+      <div className="h-full flex flex-col justify-center px-16 relative z-10" dir="rtl">
+        {/* Slide type badge */}
+        <span className="text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-400 mb-4 slide-reveal">
+          {slide.slide_type === 'opening' && 'פתיחה'}
+          {slide.slide_type === 'pain' && 'האתגר'}
+          {slide.slide_type === 'tool' && 'הכלי'}
+          {slide.slide_type === 'exercise' && 'תרגיל'}
+          {slide.slide_type === 'insight' && 'תובנה מהשטח'}
+          {slide.slide_type === 'closing' && 'סגירה'}
+        </span>
+
+        {/* Title */}
+        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">
+          {slide.title}
+        </h2>
+
+        {/* Content bullets as human sentences */}
+        <div className="space-y-4">
+          {(slide.bullets || []).map((sentence, i) => (
+            <p
+              key={i}
+              className="text-xl text-gray-700 dark:text-gray-200 leading-relaxed slide-reveal"
+              style={{ animationDelay: `${0.2 + i * 0.15}s` }}
+            >
+              {sentence}
+            </p>
+          ))}
+        </div>
+
+        {/* Facilitator note */}
+        {slide.facilitator_note && (
+          <div className="mt-8 p-4 bg-green-50 dark:bg-gray-800 border border-green-200 dark:border-green-800 rounded-xl slide-reveal" style={{ animationDelay: '0.6s' }}>
+            <p className="text-sm text-green-800 dark:text-green-400 font-medium">
+              💡 למנחה: {slide.facilitator_note}
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  })) : [
     {
-      id: 'title',
+      id: 'fallback',
       content: (
         <div className="h-full flex flex-col items-center justify-center text-center relative z-10">
           <Particles />
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 slide-reveal">
-            {topic}
-          </h1>
-          <p className="text-2xl text-green-800 dark:text-green-400 font-medium slide-reveal" style={{ animationDelay: '0.2s' }}>
-            סדנה מעשית בשיטת "דרך"
-          </p>
-          <div className="mt-12 w-24 h-1 bg-green-600 dark:bg-green-500 rounded slide-reveal" style={{ animationDelay: '0.4s' }}></div>
-          <p className="mt-8 text-lg text-gray-600 dark:text-gray-300 slide-reveal" style={{ animationDelay: '0.6s' }}>
-            בהנחיית אביהו סיטון
-          </p>
-        </div>
-      )
-    },
-    {
-      id: 'why',
-      content: (
-        <div className="h-full flex flex-col justify-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">האתגר (למה אנחנו כאן?)</h2>
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 slide-reveal" style={{ animationDelay: '0.2s' }}>
-            <p className="text-2xl leading-relaxed text-gray-800 dark:text-gray-200">
-              {marketAnalysis?.marketResearch.landscape || "ניתוח חסר"}
-            </p>
-          </div>
-          <ul className="mt-8 space-y-4">
-            <li className="flex items-center text-xl text-gray-700 dark:text-gray-300 slide-reveal" style={{ animationDelay: '0.4s' }}>
-              <span className="h-3 w-3 bg-green-500 rounded-full ml-4"></span>
-              לא עוד "טיפים" או "תאוריה"
-            </li>
-            <li className="flex items-center text-xl text-gray-700 dark:text-gray-300 slide-reveal" style={{ animationDelay: '0.5s' }}>
-              <span className="h-3 w-3 bg-green-500 rounded-full ml-4"></span>
-              חסר חיבור אמיתי בין ידע לעבודה רגשית
-            </li>
-          </ul>
-        </div>
-      )
-    },
-    {
-      id: 'agenda',
-      content: (
-        <div className="h-full flex flex-col justify-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">אג'נדה</h2>
-          <ol className="list-decimal list-inside space-y-6 text-2xl text-gray-800 dark:text-gray-200">
-             <li className="slide-reveal" style={{ animationDelay: '0.2s' }}>מבוא והיכרות עם האתגר</li>
-             <li className="slide-reveal" style={{ animationDelay: '0.3s' }}>{winningAngle?.title || "הגישה הייחודית"}</li>
-             <li className="slide-reveal" style={{ animationDelay: '0.4s' }}>נהר החיים - מושגי יסוד</li>
-             <li className="slide-reveal" style={{ animationDelay: '0.5s' }}>נקודת הבחירה - מושגי יסוד</li>
-             <li className="slide-reveal" style={{ animationDelay: '0.6s' }}>עבודה מעשית (זיהוי הסלעים)</li>
-             <li className="slide-reveal" style={{ animationDelay: '0.7s' }}>סיכום והטמעה</li>
-          </ol>
-        </div>
-      )
-    },
-    {
-      id: 'solution',
-      content: (
-        <div className="h-full flex flex-col justify-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">הגישה שלנו</h2>
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 slide-reveal" style={{ animationDelay: '0.2s' }}>
-            <p className="text-2xl leading-relaxed text-gray-800 dark:text-gray-200">
-              {winningAngle?.positioningStatement || "מיצוב חסר"}
-            </p>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'methodology1',
-      content: (
-        <div className="h-full flex flex-col justify-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">מושגי יסוד: נהר החיים</h2>
-          <div className="bg-green-50 dark:bg-gray-800 p-10 rounded-2xl border border-green-100 dark:border-gray-700 slide-reveal" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-3xl font-bold text-green-900 dark:text-green-400 mb-4">הנפש כנהר זורם</h3>
-            <p className="text-2xl text-gray-700 dark:text-gray-300 leading-relaxed">
-              הנפש היא כנהר שמחפש כל הזמן תנועה ואיזון. מכשולים אינם "בעיות" שצריך לסלק מיד, אלא הם ביטוי לניסיון של הנפש להתארגן מחדש ולהגן על עצמה מול אתגרי החיים.
-            </p>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'methodology2',
-      content: (
-        <div className="h-full flex flex-col justify-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">מושגי יסוד: נקודת הבחירה</h2>
-          <div className="bg-green-50 dark:bg-gray-800 p-10 rounded-2xl border border-green-100 dark:border-gray-700 slide-reveal" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-3xl font-bold text-green-900 dark:text-green-400 mb-4">יציאה מטייס אוטומטי</h3>
-            <p className="text-2xl text-gray-700 dark:text-gray-300 leading-relaxed">
-              זיהוי הרגע המדויק שבו אנו עוברים מתגובה אוטומטית כתוצאה מהאתגר, לבחירה מודעת. זו הנקודה שבה אנו לוקחים אחריות אישית מלאה.
-            </p>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'exercise',
-      content: (
-        <div className="h-full flex flex-col items-center justify-center text-center px-16 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 slide-reveal">עבודה מעשית</h2>
-          <div className="w-full max-w-3xl bg-white/90 dark:bg-gray-800/90 p-10 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 slide-reveal" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-2xl font-semibold text-green-800 dark:text-green-400 mb-6">תרגיל: זיהוי סלעים בנהר</h3>
-            <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
-              חשבו על אתגר אחד משמעותי הקשור ל{topic}.<br/>מהו ה"סלע" שחוסם את הזרימה? איך המים (הנפש) מנסים לעקוף אותו כרגע?
-            </p>
-            <div className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              10 דקות - כתיבה אישית
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'closing',
-      content: (
-        <div className="h-full flex flex-col items-center justify-center text-center relative z-10">
-          <Particles />
-          <h2 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-8 slide-reveal">סיכום וצידה לדרך</h2>
-          <p className="text-2xl text-gray-700 dark:text-gray-300 max-w-2xl slide-reveal" style={{ animationDelay: '0.2s' }}>
-            "המסע אל העצמאות הרגשית אינו נגמר, אבל היום קיבלתם מצפן."
-          </p>
-          <div className="mt-12 space-y-4 slide-reveal" style={{ animationDelay: '0.4s' }}>
-            <p className="text-xl font-medium text-green-800 dark:text-green-400">אביהו סיטון | שיטת דרך</p>
-            <p className="text-lg text-gray-500 dark:text-gray-400">avihusitton.com</p>
-          </div>
+          <h1 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-6 slide-reveal">{topic}</h1>
+          <p className="text-2xl text-green-800 dark:text-green-400 font-medium slide-reveal">סדנה מעשית בשיטת "דרך"</p>
+          <p className="mt-8 text-lg text-gray-500 dark:text-gray-400 slide-reveal">בהנחיית אביהו סיטון</p>
         </div>
       )
     }
