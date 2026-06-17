@@ -136,7 +136,14 @@ export default function MarketAnalysis() {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">דו״ח אנליזת שוק ובידול</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mt-1">עבור הסדנה: <span className="font-semibold">"{topic}"</span></p>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mt-1">
+            נושא: <span className="font-semibold">"{topic}"</span>
+          </p>
+          {marketAnalysis?.interpreted_topic && marketAnalysis.interpreted_topic !== topic && (
+            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+              פרשנות AI: "{marketAnalysis.interpreted_topic}"
+            </p>
+          )}
         </div>
         {marketAnalysis.economicValidation.decision === 'GO' ? (
           <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-800 border border-green-200">
